@@ -24,6 +24,7 @@ from ryu.lib import ip
 # select the type of hub.
 HUB_TYPE = os.getenv('RYU_HUB_TYPE', 'eventlet')
 
+# Return a logger with the specified name, creating it if necessary
 LOG = logging.getLogger('ryu.lib.hub')
 
 if HUB_TYPE == 'eventlet':

@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # Copyright (C) 2011 Nippon Telegraph and Telephone Corporation.
 # Copyright (C) 2011 Isaku Yamahata <yamahata at valinux co jp>
 #
@@ -52,13 +53,14 @@ _EARLY_LOG_HANDLER = None
 def early_init_log(level=None):
     global _EARLY_LOG_HANDLER
     _EARLY_LOG_HANDLER = logging.StreamHandler(sys.stderr)
-
+    # 创建log对象
     log = logging.getLogger()
     log.addHandler(_EARLY_LOG_HANDLER)
     if level is not None:
         log.setLevel(level)
 
 
+# 获取log路径
 def _get_log_file():
     if CONF.log_file:
         return CONF.log_file
@@ -70,9 +72,9 @@ def _get_log_file():
 
 def init_log():
     global _EARLY_LOG_HANDLER
-
+    # 创建log对象
     log = logging.getLogger()
-
+    # 从配置文件中设置log模块
     if CONF.log_config_file:
         try:
             logging.config.fileConfig(CONF.log_config_file,
@@ -84,6 +86,7 @@ def init_log():
         return
 
     if CONF.use_stderr:
+        # 将日志文件输出值错误输出
         log.addHandler(logging.StreamHandler(sys.stderr))
     if _EARLY_LOG_HANDLER is not None:
         log.removeHandler(_EARLY_LOG_HANDLER)
@@ -94,12 +97,15 @@ def init_log():
             address = '/var/run/syslog'
         else:
             address = '/dev/log'
+        # 定义句柄:日志输出到syslog
         syslog = logging.handlers.SysLogHandler(address=address)
         log.addHandler(syslog)
 
     log_file = _get_log_file()
     if log_file is not None:
+        # 配置监控日志句柄
         log.addHandler(logging.handlers.WatchedFileHandler(log_file))
+        # 将其转为8进制
         mode = int(CONF.log_file_mode, 8)
         os.chmod(log_file, mode)
 

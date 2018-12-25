@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 #!/usr/bin/env python
 #
 # Copyright (C) 2011, 2012 Nippon Telegraph and Telephone Corporation.
@@ -26,6 +27,7 @@ from ryu import cfg
 
 import logging
 from ryu import log
+# 调用log 模块中的early_init_log 函数
 log.early_init_log(logging.DEBUG)
 
 from ryu import flags
