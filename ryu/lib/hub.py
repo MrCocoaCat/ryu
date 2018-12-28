@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # Copyright (C) 2013 Nippon Telegraph and Telephone Corporation.
 # Copyright (C) 2013 YAMAMOTO Takashi <yamamoto at valinux co jp>
 #
@@ -45,7 +46,9 @@ if HUB_TYPE == 'eventlet':
     import traceback
 
     getcurrent = eventlet.getcurrent
+    # 在全局中为指定的系统模块打补丁，补丁后的模块是“绿色线程友好的”，关键字参数指示哪些模块需要被打补丁，
     patch = eventlet.monkey_patch
+    # 暂停当前greenthread，允许其他线程处理
     sleep = eventlet.sleep
     listen = eventlet.listen
     connect = eventlet.connect

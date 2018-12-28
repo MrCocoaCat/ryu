@@ -105,11 +105,14 @@ def main(args=None, prog=None):
     webapp = wsgi.start_service(app_mgr)
     if webapp:
         thr = hub.spawn(webapp)
+        # 加入services列表
         services.append(thr)
 
     try:
+        # 对server服务列表遍历wait
         hub.joinall(services)
     except KeyboardInterrupt:
+        #KeyboardInterrupt:用户中断执行(通常是输入^C)
         logger.debug("Keyboard Interrupt received. "
                      "Closing RYU application manager...")
     finally:
