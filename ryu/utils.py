@@ -1,18 +1,4 @@
-# Copyright (C) 2011 Nippon Telegraph and Telephone Corporation.
-# Copyright (C) 2011 Isaku Yamahata <yamahata at valinux co jp>
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-# implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# -*- coding: UTF-8 -*-
 
 import importlib
 import logging
@@ -43,8 +29,11 @@ def load_source(name, pathname):
 
 
 def chop_py_suffix(p):
+    # 该函数将所有py结尾均切割
     for suf in ['.py', '.pyc', '.pyo']:
+        # str.endswith 函数判断是否已指定字符结尾
         if p.endswith(suf):
+            #  切片
             return p[:-len(suf)]
     return p
 
@@ -79,10 +68,15 @@ def _find_loaded_module(modpath):
 
 
 def _import_module_file(path):
+
     abspath = os.path.abspath(path)
     # Backup original sys.path before appending path to file
+    # sys.path 当前python 搜索路径模块
     original_path = list(sys.path)
+    # 添加当前路径
     sys.path.append(os.path.dirname(abspath))
+    # os.path.basename 返回最后一个元素，通常为文件名
+    # 自定义chop_py_suffix函数，用于去除后缀名
     modname = chop_py_suffix(os.path.basename(abspath))
     try:
         return load_source(modname, abspath)

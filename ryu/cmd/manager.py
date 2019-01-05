@@ -58,7 +58,9 @@ def _parse_user_flags():
     Parses user-flags file and loads it to register user defined options.
     """
     try:
+        # sys.argv获取程序参数，.index函数用于获取索引
         idx = list(sys.argv).index('--user-flags')
+        # 获取--user-flags 后一个参数
         user_flags_file = sys.argv[idx + 1]
     except (ValueError, IndexError):
         user_flags_file = ''
