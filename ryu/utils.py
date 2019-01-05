@@ -11,7 +11,7 @@ import six
 LOG = logging.getLogger('ryu.utils')
 
 
-def load_source(name, pathname):
+def  load_source(name, pathname):
     """
     This function provides the backward compatibility for 'imp.load_source'
     in Python 2.
