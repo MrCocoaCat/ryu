@@ -1,18 +1,5 @@
-# Copyright (C) 2011-2014 Nippon Telegraph and Telephone Corporation.
-# Copyright (C) 2011 Isaku Yamahata <yamahata at valinux co jp>
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-# implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# -*- coding: UTF-8 -*-
+
 
 """
 The central management of Ryu applications.
@@ -61,6 +48,7 @@ def register_app(app):
     assert isinstance(app, RyuApp)
     assert app.name not in SERVICE_BRICKS
     SERVICE_BRICKS[app.name] = app
+    # 调用handler中的函数
     register_instance(app)
 
 
@@ -88,6 +76,7 @@ def require_app(app_name, api_style=False):
     LOG.debug('require_app: %s is required by %s', app_name, m.__name__)
 
 
+# 基类
 class RyuApp(object):
     """
     The base class for Ryu applications.
@@ -350,8 +339,10 @@ class RyuApp(object):
 
 class AppManager(object):
     # singleton
+    # 这是一个存放单例的私有成员
     _instance = None
 
+    # 定义为静态方法，启动一系列Ryu applications
     @staticmethod
     def run_apps(app_lists):
         """Run a set of Ryu applications
@@ -359,8 +350,11 @@ class AppManager(object):
         A convenient method to load and instantiate apps.
         This blocks until all relevant apps stop.
         """
+        # 获取实例
         app_mgr = AppManager.get_instance()
+        # 加载app
         app_mgr.load_apps(app_lists)
+        #
         contexts = app_mgr.create_contexts()
         services = app_mgr.instantiate_apps(**contexts)
         webapp = wsgi.start_service(app_mgr)
@@ -375,6 +369,7 @@ class AppManager(object):
             hub.joinall(services)
             gc.collect()
 
+    # 定义为静态方法，获取实例的方法
     @staticmethod
     def get_instance():
         if not AppManager._instance:
@@ -383,47 +378,63 @@ class AppManager(object):
 
     def __init__(self):
         self.applications_cls = {}
+        # 记录app
         self.applications = {}
         self.contexts_cls = {}
         self.contexts = {}
         self.close_sem = hub.Semaphore()
 
+    # 载入app
     def load_app(self, name):
+        # 导入模块
         mod = utils.import_module(name)
+        # nspect模块用于收集python对象的信息
+        # getmembers(object[, predicate])
+        # 返回一个包含对象的所有成员的(name, value)列表。
+        # 返回的内容比对象的__dict__包含的内容多，源码是通过dir()实现的。
+        # predicate是一个可选的函数参数，被此函数判断为True的成员才被返回。
+
+        # 如果为类，RyuApp子类，则获取其对象信息
         clses = inspect.getmembers(mod,
                                    lambda cls: (inspect.isclass(cls) and
                                                 issubclass(cls, RyuApp) and
-                                                mod.__name__ ==
-                                                cls.__module__))
+                                                mod.__name__ == cls.__module__))
         if clses:
             return clses[0][1]
         return None
 
+    # 载入多个app
     def load_apps(self, app_lists):
+        #  itertools.chain.from_iterable 为构建迭代器
         app_lists = [app for app
-                     in itertools.chain.from_iterable(app.split(',')
-                                                      for app in app_lists)]
+                     in itertools.chain.from_iterable(app.split(',')for app in app_lists)]
+
         while len(app_lists) > 0:
             app_cls_name = app_lists.pop(0)
 
+            # contexts_cls 为contexts_cls字典中的实值列表
             context_modules = [x.__module__ for x in self.contexts_cls.values()]
+            # 如果在列表中，则跳出循环
             if app_cls_name in context_modules:
                 continue
 
             LOG.info('loading app %s', app_cls_name)
-
+            # 调用load_app 函数
             cls = self.load_app(app_cls_name)
             if cls is None:
                 continue
 
+            # 填充applications_cls 列表
             self.applications_cls[app_cls_name] = cls
 
             services = []
             for key, context_cls in cls.context_iteritems():
+                # 填入contexts_cls 列表中
                 v = self.contexts_cls.setdefault(key, context_cls)
                 assert v == context_cls
+                # 加入context_modules 列表中
                 context_modules.append(context_cls.__module__)
-
+                # 如果其为RyuApp 的子类
                 if issubclass(context_cls, RyuApp):
                     services.extend(get_dependent_services(context_cls))
 
@@ -437,14 +448,17 @@ class AppManager(object):
                                   if s not in app_lists])
 
     def create_contexts(self):
+        # contexts_cls.items() 为可遍历的字典元组
         for key, cls in self.contexts_cls.items():
             if issubclass(cls, RyuApp):
+                # 如果cls 为 RyuApp 的子类
                 # hack for dpset
                 context = self._instantiate(None, cls)
             else:
                 context = cls()
             LOG.info('creating context %s', key)
             assert key not in self.contexts
+            # 放入字典contexts，
             self.contexts[key] = context
         return self.contexts
 
@@ -487,12 +501,16 @@ class AppManager(object):
         # Yes, maybe for slicing.
         LOG.info('instantiating app %s of %s', app_name, cls.__name__)
 
+        # hasattr(object, name)，判断是否存在name 属性
+        # 即判断其是否含有OFP_VERSIONS 属性
         if hasattr(cls, 'OFP_VERSIONS') and cls.OFP_VERSIONS is not None:
             ofproto_protocol.set_app_supported_versions(cls.OFP_VERSIONS)
 
         if app_name is not None:
             assert app_name not in self.applications
+        # 将app 赋值为传入的函数
         app = cls(*args, **kwargs)
+        # 注册
         register_app(app)
         assert app.name not in self.applications
         self.applications[app.name] = app
@@ -521,7 +539,9 @@ class AppManager(object):
 
     @staticmethod
     def _close(app):
+        # 判断是否含有close属性 ，如果没有则返回None
         close_method = getattr(app, 'close', None)
+        # 检测是否可被调用
         if callable(close_method):
             close_method()
 

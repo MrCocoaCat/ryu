@@ -1,21 +1,7 @@
 # -*- coding: UTF-8 -*-
 #!/usr/bin/env python
 #
-# Copyright (C) 2011, 2012 Nippon Telegraph and Telephone Corporation.
-# Copyright (C) 2011 Isaku Yamahata <yamahata at valinux co jp>
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-# implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+
 
 import os
 import sys
@@ -71,7 +57,9 @@ def _parse_user_flags():
 
 
 def main(args=None, prog=None):
+    # 加载函数库
     _parse_user_flags()
+
     try:
         CONF(args=args, prog=prog,
              project='ryu', version='ryu-manager %s' % version,
@@ -98,8 +86,11 @@ def main(args=None, prog=None):
     if not app_lists:
         app_lists = ['ryu.controller.ofp_handler']
 
+    # 创建实例，调用get_instance，实现单例模式
     app_mgr = AppManager.get_instance()
+    # 加载app
     app_mgr.load_apps(app_lists)
+    #
     contexts = app_mgr.create_contexts()
     services = []
     services.extend(app_mgr.instantiate_apps(**contexts))
@@ -114,7 +105,7 @@ def main(args=None, prog=None):
         # 对server服务列表遍历wait
         hub.joinall(services)
     except KeyboardInterrupt:
-        #KeyboardInterrupt:用户中断执行(通常是输入^C)
+        # KeyboardInterrupt 用户中断执行(通常是输入^C)
         logger.debug("Keyboard Interrupt received. "
                      "Closing RYU application manager...")
     finally:
