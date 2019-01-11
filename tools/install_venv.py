@@ -1,23 +1,7 @@
+# -*- coding: UTF-8 -*-
 #!/usr/bin/env python
 # vim: tabstop=4 shiftwidth=4 softtabstop=4
 
-# Copyright 2010 United States Government as represented by the
-# Administrator of the National Aeronautics and Space Administration.
-# All Rights Reserved.
-#
-# Copyright 2010 OpenStack LLC.
-#
-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
-#    not use this file except in compliance with the License. You may obtain
-#    a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
 
 """
 Installation script for Quantum's development virtualenv
@@ -41,25 +25,36 @@ def die(message, *args):
     print >> sys.stderr, message % args
     sys.exit(1)
 
-
+# 执行系统命令函数
 def run_command(cmd, redirect_output=True, check_exit_code=True):
     """
     Runs a command in an out-of-process shell, returning the
     output of that command.  Working directory is ROOT.
     """
+    # subprocess模块用于产生子进程
+    # 如果参数为redirect_output ，则创建PIPE
     if redirect_output:
         stdout = subprocess.PIPE
     else:
         stdout = None
+    # cwd 参数指定子进程的执行目录为ROOT，执行cwd 函数
     proc = subprocess.Popen(cmd, cwd=ROOT, stdout=stdout)
+    # 如果子进程输出了大量数据到stdout或者stderr的管道，并达到了系统pipe的缓存大小的话，
+    # 子进程会等待父进程读取管道，而父进程此时正wait着的话，将会产生死锁。
+    # 使用communicate() 返回值为 (stdoutdata , stderrdata )
     output = proc.communicate()[0]
     if check_exit_code and proc.returncode != 0:
+        # 程序不返回0，则失败
         raise Exception('Command "%s" failed.\n%s' % (' '.join(cmd), output))
     return output
 
 
 HAS_EASY_INSTALL = bool(run_command(['which', 'easy_install'],
                                     check_exit_code=False).strip())
+
+# 执行which 指令，strip为去除首位字符串
+# which指令会在环境变量$PATH设置的目录里查找符合条件的文件。
+#  如果没有无，则标准输出stdoutdata-返回空，错误输出stderrdata-相应提示
 HAS_VIRTUALENV = bool(run_command(['which', 'virtualenv'],
                                     check_exit_code=False).strip())
 
