@@ -14,9 +14,12 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 VENV = os.path.join(ROOT, '.venv')
+
+# 相关需求项的列表
 PIP_REQUIRES = os.path.join(ROOT, 'tools', 'pip-requires')
 OPTIONAL_REQUIRES = os.path.join(ROOT, 'tools', 'optional-requires')
 TEST_REQUIRES = os.path.join(ROOT, 'tools', 'test-requires')
+
 PY_VERSION = "python%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 VENV_EXISTS = bool(os.path.exists(VENV))
@@ -83,6 +86,8 @@ def create_virtualenv(venv=VENV, install_pip=False):
             not run_command(['tools/with_venv.sh', 'easy_install',
                              'pip>1.0']):
         die("Failed to install pip.")
+    # 调用with_venv.sh 脚本启动venv
+    # die 函数为输出为stderr
     print 'done.'
 
 
