@@ -76,7 +76,7 @@ def require_app(app_name, api_style=False):
     LOG.debug('require_app: %s is required by %s', app_name, m.__name__)
 
 
-# 基类
+# 所有RYU app 的基类
 class RyuApp(object):
     """
     The base class for Ryu applications.

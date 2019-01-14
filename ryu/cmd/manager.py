@@ -60,6 +60,7 @@ def main(args=None, prog=None):
     # 加载函数库
     _parse_user_flags()
 
+    # 加载配置文件
     try:
         CONF(args=args, prog=prog,
              project='ryu', version='ryu-manager %s' % version,
@@ -83,12 +84,13 @@ def main(args=None, prog=None):
 
     app_lists = CONF.app_lists + CONF.app
     # keep old behavior, run ofp if no application is specified.
+    # 如果配置文件的列表为空，则加载ryu.controller.ofp_handler
     if not app_lists:
         app_lists = ['ryu.controller.ofp_handler']
 
     # 创建实例，调用get_instance，实现单例模式
     app_mgr = AppManager.get_instance()
-    # 加载app
+    # 加载app列表
     app_mgr.load_apps(app_lists)
     #
     contexts = app_mgr.create_contexts()

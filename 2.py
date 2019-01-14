@@ -6,8 +6,10 @@
 
 import inspect
 
-class a(object):
-    a = 1
+
+class Fa(object):
+    def __init__(self):
+        a = 1
 
     def f(self):
         print "ddd"
@@ -15,7 +17,13 @@ class a(object):
     def close(self):
         print "ddd"
 
-b = inspect.getmembers(a)
+
+b = inspect.getmembers(Fa)
 print b
-c = getattr(a, "a", None)
+c = getattr(Fa, "a", None)
 print c
+
+c = []
+d = [1]
+if not d:
+    print 123

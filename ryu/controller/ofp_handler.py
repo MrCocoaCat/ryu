@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2011, 2012 Nippon Telegraph and Telephone Corporation.
 # Copyright (C) 2011, 2012 Isaku Yamahata <yamahata at valinux co jp>
 #
@@ -47,6 +48,7 @@ from ryu.ofproto import ofproto_parser
 # Note that at any state, when we receive Echo Request message, send
 # back Echo Reply message.
 
+# 默认启动的APP
 
 class OFPHandler(ryu.base.app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
