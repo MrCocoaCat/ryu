@@ -90,7 +90,7 @@ def main(args=None, prog=None):
 
     # 创建实例，调用get_instance，实现单例模式
     app_mgr = AppManager.get_instance()
-    # 加载app列表
+    # 加载app_lists中的app
     app_mgr.load_apps(app_lists)
     #
     contexts = app_mgr.create_contexts()
