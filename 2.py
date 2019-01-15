@@ -23,7 +23,3 @@ print b
 c = getattr(Fa, "a", None)
 print c
 
-c = []
-d = [1]
-if not d:
-    print 123

@@ -1,19 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2011, 2012 Nippon Telegraph and Telephone Corporation.
-# Copyright (C) 2011, 2012 Isaku Yamahata <yamahata at valinux co jp>
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-# implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 """
 Basic OpenFlow handling including negotiation.
@@ -39,17 +24,21 @@ from ryu.ofproto import ofproto_parser
 #
 # HANDSHAKE: if it receives HELLO message with the valid OFP version,
 # sends Features Request message, and moves to CONFIG.
-#
+# 握手： 如果其接收到有效OFP版本的HELLO信息，则发送 Features Request 消息，并且转移至CONFIG
+
 # CONFIG: it receives Features Reply message and moves to MAIN
-#
+# CONFIG：其接收Features Reply 消息，并转移至MAIN
+
 # MAIN: it does nothing. Applications are expected to register their
 # own handlers.
-#
+# MAIN：设么也不做，APP 预计注册其自己的句柄
+
 # Note that at any state, when we receive Echo Request message, send
 # back Echo Reply message.
+# 在任何阶段，接收到Echo Request 消息则回发Echo Reply 消息
+
 
 # 默认启动的APP
-
 class OFPHandler(ryu.base.app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
         super(OFPHandler, self).__init__(*args, **kwargs)
