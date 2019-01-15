@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # Copyright (C) 2011 Nippon Telegraph and Telephone Corporation.
 # Copyright (C) 2011 Isaku Yamahata <yamahata at valinux co jp>
 #
@@ -18,8 +19,10 @@
 class EventBase(object):
     """
     The base of all event classes.
-
     A Ryu application can define its own event type by creating a subclass.
+
+    所有事件的基类
+    Ryu app 可以定义其自己的事件，通过创建子类
     """
 
     def __init__(self):

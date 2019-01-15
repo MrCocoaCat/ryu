@@ -166,12 +166,14 @@ class RyuApp(object):
         self.name = self.__class__.__name__
         self.event_handlers = {}        # ev_cls -> handlers:list
         self.observers = {}     # ev_cls -> observer-name -> states:set
+        # 线程列表
         self.threads = []
         self.main_thread = None
-        #  hub.Queue 并发队列，其最大数量为128
+        # hub.Queue 并发队列，其最大数量为128
         self.events = hub.Queue(128)
-        #
+        # 声明有限信号量，其最大个数与hub.Queue.maxsize相同，即128
         self._events_sem = hub.BoundedSemaphore(self.events.maxsize)
+        # 判断是否含有LOGGER_NAME 属性，self.__class__即指向该类
         if hasattr(self.__class__, 'LOGGER_NAME'):
             self.logger = logging.getLogger(self.__class__.LOGGER_NAME)
         else:
@@ -179,6 +181,7 @@ class RyuApp(object):
         self.CONF = cfg.CONF
 
         # prevent accidental creation of instances of this class outside RyuApp
+        # 防止在RyuApp之外意外创建此类的实例
         class _EventThreadStop(event.EventBase):
             pass
         self._event_stop = _EventThreadStop()
@@ -188,6 +191,7 @@ class RyuApp(object):
         """
         Hook that is called after startup initialization is done.
         """
+        # 添加至线程列表，启动线程函数为self._event_loop
         self.threads.append(hub.spawn(self._event_loop))
 
     def stop(self):
@@ -241,13 +245,16 @@ class RyuApp(object):
 
     def get_handlers(self, ev, state=None):
         """Returns a list of handlers for the specific event.
+        返回指定事件的句柄列表
 
-        :param ev: The event to handle.
-        :param state: The current state. ("dispatcher")
+        :param ev: The event to handle. 事件句柄
+        :param state: The current state. ("dispatcher") 当前状态
                       If None is given, returns all handlers for the event.
                       Otherwise, returns only handlers that are interested
                       in the specified state.
                       The default is None.
+                      如果给定None,返回所有的事件句柄，否则仅返回其特殊状态感兴趣的句柄
+                      默认为None
         """
         ev_cls = ev.__class__
         handlers = self.event_handlers.get(ev_cls, [])
@@ -292,9 +299,17 @@ class RyuApp(object):
         return req.reply_q.get()
 
     def _event_loop(self):
+        # 循环，若events不为空 及 其为激活状态
         while self.is_active or not self.events.empty():
+            # get():Remove and return an item from the queue.
+            # 从并发队列中弹出元素
             ev, state = self.events.get()
+            # Release a semaphore, incrementing the internal counter by one.
+            # If the counter would exceed the initial value, raises ValueError.
+            # When it was zero on entry and another thread is waiting for it to become larger than zero again,
+            # wake up that thread.
             self._events_sem.release()
+            # _event_stop 为自定义的event类
             if ev == self._event_stop:
                 continue
             handlers = self.get_handlers(ev, state)
@@ -319,7 +334,6 @@ class RyuApp(object):
         """
         Send the specified event to the RyuApp instance specified by name.
         """
-
         if name in SERVICE_BRICKS:
             if isinstance(ev, EventRequestBase):
                 ev.src = self.name
