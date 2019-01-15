@@ -2,11 +2,11 @@
 
 
 """
-The central management of Ryu applications.
+The central management of Ryu applications.核心管理
 
-- Load Ryu applications
-- Provide `contexts` to Ryu applications
-- Route messages among Ryu applications
+- Load Ryu applications 加载Ryu App
+- Provide `contexts` to Ryu applications 为Ryu App提供contexts
+- Route messages among Ryu applications Ryu App之间的消息路由
 
 """
 
@@ -85,11 +85,19 @@ class RyuApp(object):
     all requested Ryu application modules.
     __init__ should call RyuApp.__init__ with the same arguments.
     It's illegal to send any events in __init__.
-
     The instance attribute 'name' is the name of the class used for
     message routing among Ryu applications.  (Cf. send_event)
     It's set to __class__.__name__ by RyuApp.__init__.
     It's discouraged for subclasses to override this.
+
+    Ryu applications的基类
+    在ryu-manager加载了所有Ryu application需求的模块后，RyuApp子类实例化，
+    __init__ 需要调用RyuApp.__init__，并使用相同的参数。
+    在__init__中发送任何事件是违法的
+    实例的‘name’属性是该类用于Ryu app 之间消息路由的名字
+    其被RyuApp.__init__设置于 __class__.__name__
+    其他子类不应复写这个属性
+
     """
 
     _CONTEXTS = {}
@@ -101,6 +109,10 @@ class RyuApp(object):
     member with the same key.  A RyuApp subclass can obtain a reference to
     the instance via its __init__'s kwargs as the following.
 
+    用于指定此Ryu应用程序要使用的上下文的字典。
+    它的键值是上下文的名称，它的实值是实现上下文的普通类。
+    该类由app_manager实例化，实例在具有相同键的_CONTEXTS成员的RyuApp子类之间共享。
+    
     Example::
 
         _CONTEXTS = {
@@ -116,12 +128,18 @@ class RyuApp(object):
     A list of event classes which this RyuApp subclass would generate.
     This should be specified if and only if event classes are defined in
     a different python module from the RyuApp subclass is.
+    
+    此RyuApp子类将生成的事件类列表。
+    当且仅当事件类在与RyuApp子类不同的python模块中定义时，才应该指定这个
     """
 
     OFP_VERSIONS = None
     """
     A list of supported OpenFlow versions for this RyuApp.
     The default is all versions supported by the framework.
+    
+    此RyuApp支持的OpenFlow版本列表。
+    默认值是框架支持的所有版本。
 
     Examples::
 
@@ -130,23 +148,29 @@ class RyuApp(object):
 
     If multiple Ryu applications are loaded in the system,
     the intersection of their OFP_VERSIONS is used.
+    
+    如果在系统中加载了多个Ryu应用程序，则使用它们的OFP_VERSIONS的交集。
     """
 
     @classmethod
     def context_iteritems(cls):
         """
         Return iterator over the (key, contxt class) of application context
+        返回application context的迭代器
         """
         return iter(cls._CONTEXTS.items())
 
     def __init__(self, *_args, **_kwargs):
         super(RyuApp, self).__init__()
+        # 其name 即为类的名字
         self.name = self.__class__.__name__
         self.event_handlers = {}        # ev_cls -> handlers:list
         self.observers = {}     # ev_cls -> observer-name -> states:set
         self.threads = []
         self.main_thread = None
+        #  hub.Queue 并发队列，其最大数量为128
         self.events = hub.Queue(128)
+        #
         self._events_sem = hub.BoundedSemaphore(self.events.maxsize)
         if hasattr(self.__class__, 'LOGGER_NAME'):
             self.logger = logging.getLogger(self.__class__.LOGGER_NAME)
