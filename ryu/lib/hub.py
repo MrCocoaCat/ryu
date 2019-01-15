@@ -97,9 +97,20 @@ if HUB_TYPE == 'eventlet':
             except TaskExit:
                 pass
 
+    # http://eventlet.net/doc/modules/semaphore.html
+    #
+    # This is a variant of Queue that behaves mostly like the standard Stdlib_Queue.
+    # It differs by not supporting the task_done or join methods,
+    # and is a little faster for not having that overhead.
+    # Queue的变体，类似于标准的Stdlib_Queue。
+    # 但不支持task_done或join方法，速度更快。
     Queue = eventlet.queue.LightQueue
+    # Return True if the queue is empty, False otherwise.
     QueueEmpty = eventlet.queue.Empty
+    # An unbounded semaphore.有限信号量
     Semaphore = eventlet.semaphore.Semaphore
+    # A bounded semaphore checks to make sure its current value doesn’t exceed its initial value.
+    # 有限信号量，即信号量总数不得超过设定值
     BoundedSemaphore = eventlet.semaphore.BoundedSemaphore
     # 强制退出异常
     TaskExit = greenlet.GreenletExit
