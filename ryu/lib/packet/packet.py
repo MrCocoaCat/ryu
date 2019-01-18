@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # Copyright (C) 2012 Nippon Telegraph and Telephone Corporation.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,6 +52,18 @@ class Packet(StringifyMixin):
     The payload is a bytearray.  They are iterated in on-wire order.
 
     *data* should be omitted when encoding a packet.
+
+    对包进行编码/解码的类
+
+    实例用于解码或编码单个数据包。
+    * data *是一个字节数组，用于描述要解码的原始数据报。
+    解码时，Packet对象是可迭代的。
+    迭代值是协议（ethernet，ipv4，...）标头和有效负载。
+  协议头是packet_base.PacketBase的子类的实例。
+  有效负载是一个bytearray。 它们以线上顺序迭代。
+
+
+
     """
 
     # Ignore data field when outputting json representation.
@@ -130,6 +143,8 @@ class Packet(StringifyMixin):
 
     def get_protocols(self, protocol):
         """Returns a list of protocols that matches to the specified protocol.
+        返回与指定协议匹配的协议列表。
+
         """
         if isinstance(protocol, packet_base.PacketBase):
             protocol = protocol.__class__

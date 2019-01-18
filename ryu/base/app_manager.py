@@ -164,12 +164,14 @@ class RyuApp(object):
         super(RyuApp, self).__init__()
         # 其name 即为类的名字
         self.name = self.__class__.__name__
+        # 事件 与 句柄列表 的字典
         self.event_handlers = {}        # ev_cls -> handlers:list
         self.observers = {}     # ev_cls -> observer-name -> states:set
         # 线程列表
         self.threads = []
         self.main_thread = None
         # hub.Queue 并发队列，其最大数量为128
+        # 存放 事件及状态
         self.events = hub.Queue(128)
         # 声明有限信号量，其最大个数与hub.Queue.maxsize相同，即128
         self._events_sem = hub.BoundedSemaphore(self.events.maxsize)
@@ -185,8 +187,10 @@ class RyuApp(object):
         class _EventThreadStop(event.EventBase):
             pass
         self._event_stop = _EventThreadStop()
+        # 标识
         self.is_active = True
 
+    # 启动函数
     def start(self):
         """
         Hook that is called after startup initialization is done.
@@ -194,9 +198,11 @@ class RyuApp(object):
         # 添加至线程列表，启动线程函数为self._event_loop
         self.threads.append(hub.spawn(self._event_loop))
 
+    # 停止函数
     def stop(self):
         if self.main_thread:
             hub.kill(self.main_thread)
+        # 将标识设置为False
         self.is_active = False
         self._send_event(self._event_stop, None)
         hub.joinall(self.threads)
@@ -256,11 +262,16 @@ class RyuApp(object):
                       如果给定None,返回所有的事件句柄，否则仅返回其特殊状态感兴趣的句柄
                       默认为None
         """
+
+        # 传入的参数，即在并发虚序列中获取的值
         ev_cls = ev.__class__
+        # event_handlers 为该类存放句柄的字典
+        # 获取ev_cls对应的列表
         handlers = self.event_handlers.get(ev_cls, [])
         if state is None:
             return handlers
 
+        # 过滤函数，过滤state
         def test(h):
             if not hasattr(h, 'callers') or ev_cls not in h.callers:
                 # dynamically registered handlers does not have
@@ -298,12 +309,14 @@ class RyuApp(object):
         # going to sleep for the reply
         return req.reply_q.get()
 
+    # start 函数中启动的 线程函数
     def _event_loop(self):
         # 循环，若events不为空 及 其为激活状态
         while self.is_active or not self.events.empty():
             # get():Remove and return an item from the queue.
             # 从并发队列中弹出元素
             ev, state = self.events.get()
+
             # Release a semaphore, incrementing the internal counter by one.
             # If the counter would exceed the initial value, raises ValueError.
             # When it was zero on entry and another thread is waiting for it to become larger than zero again,
@@ -312,6 +325,7 @@ class RyuApp(object):
             # _event_stop 为自定义的event类
             if ev == self._event_stop:
                 continue
+            # 获取句柄，
             handlers = self.get_handlers(ev, state)
             for handler in handlers:
                 try:

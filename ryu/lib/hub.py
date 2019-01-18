@@ -88,6 +88,7 @@ if HUB_TYPE == 'eventlet':
     def kill(thread):
         thread.kill()
 
+    # join 列表中的线程
     def joinall(threads):
         for t in threads:
             # This try-except is necessary when killing an inactive
