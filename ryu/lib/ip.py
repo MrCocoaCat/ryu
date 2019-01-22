@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2015 Nippon Telegraph and Telephone Corporation.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +24,12 @@ from ryu.lib import type_desc
 
 
 def _valid_ip(strategy, bits, addr, flags=0):
+    # 按'/'分割，返回列表
     addr = addr.split('/')
+    # 如果其中自有一个元素
     if len(addr) == 1:
         return strategy(addr[0], flags)
+    #  如果其有两个元素
     elif len(addr) == 2:
         return strategy(addr[0], flags) and 0 <= int(addr[1]) <= bits
     else:

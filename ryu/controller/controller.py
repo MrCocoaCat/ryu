@@ -117,10 +117,14 @@ class OpenFlowController(object):
     def __init__(self):
         super(OpenFlowController, self).__init__()
         if not CONF.ofp_tcp_listen_port and not CONF.ofp_ssl_listen_port:
+            # 设置监听端口
             self.ofp_tcp_listen_port = ofproto_common.OFP_TCP_PORT
             self.ofp_ssl_listen_port = ofproto_common.OFP_SSL_PORT
             # For the backward compatibility, we spawn a server loop
             # listening on the old OpenFlow listen port 6633.
+
+            # 为了向后兼容，我们生成了一个服务器循环
+            # 听旧的OpenFlow监听端口6633。
             hub.spawn(self.server_loop,
                       ofproto_common.OFP_TCP_PORT_OLD,
                       ofproto_common.OFP_SSL_PORT_OLD)
@@ -158,6 +162,7 @@ class OpenFlowController(object):
     def server_loop(self, ofp_tcp_listen_port, ofp_ssl_listen_port):
         if CONF.ctl_privkey is not None and CONF.ctl_cert is not None:
             if CONF.ca_certs is not None:
+                # (self, listen_info, handle=None, backlog=None,spawn='default', **ssl_args)
                 server = StreamServer((CONF.ofp_listen_host,
                                        ofp_ssl_listen_port),
                                       datapath_connection_factory,
@@ -201,6 +206,10 @@ class Datapath(ofproto_protocol.ProtocolDesc):
 
     An instance has the following attributes.
 
+    用于描述 OpenFlow switch 连接到controller的类
+    实例具有以下属性
+
+
     .. tabularcolumns:: |l|L|
 
     ==================================== ======================================
@@ -210,6 +219,7 @@ class Datapath(ofproto_protocol.ProtocolDesc):
                                          Only available for
                                          ryu.controller.handler.MAIN_DISPATCHER
                                          phase.
+                                         64位OpenFlow Datapath ID。
     ofproto                              A module which exports OpenFlow
                                          definitions, mainly constants appeared
                                          in the specification, for the
@@ -250,13 +260,17 @@ class Datapath(ofproto_protocol.ProtocolDesc):
         super(Datapath, self).__init__()
 
         self.socket = socket
+        #  TCP_NODELAY 不使用Nagle算法　
         self.socket.setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
+        # 设置阻塞时间
         self.socket.settimeout(CONF.socket_timeout)
         self.address = address
         self.is_active = True
 
         # The limit is arbitrary. We need to limit queue size to
         # prevent it from eating memory up.
+        # 限制是任意的。
+        # 我们需要限制队列大小以防止它占用内存。
         self.send_q = hub.Queue(16)
         self._send_q_sem = hub.BoundedSemaphore(self.send_q.maxsize)
 
@@ -520,9 +534,10 @@ class Datapath(ofproto_protocol.ProtocolDesc):
     def is_reserved_port(self, port_no):
         return port_no > self.ofproto.OFPP_MAX
 
-
+# 处理接收到的数据
 def datapath_connection_factory(socket, address):
     LOG.debug('connected socket:%s address:%s', socket, address)
+    # 利用(socket, address)创建Datapath 对象
     with contextlib.closing(Datapath(socket, address)) as datapath:
         try:
             datapath.serve()

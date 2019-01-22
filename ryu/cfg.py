@@ -1,3 +1,4 @@
+#- * - coding: UTF - 8 -*-
 # Copyright (C) 2014 Nippon Telegraph and Telephone Corporation.
 # Copyright (C) 2014 YAMAMOTO Takashi <yamamoto at valinux co jp>
 #
@@ -30,6 +31,7 @@ import oslo_config.cfg
 # At some point later we might want to unshare a. and b. as well, in order
 # to allow app-specific options.
 
+# 创建ConfigOpts 对象
 CONF = oslo_config.cfg.ConfigOpts()
 
 # re-export for convenience
