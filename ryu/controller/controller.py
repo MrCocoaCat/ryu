@@ -1,24 +1,14 @@
-# Copyright (C) 2011, 2012 Nippon Telegraph and Telephone Corporation.
-# Copyright (C) 2011, 2012 Isaku Yamahata <yamahata at valinux co jp>
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-# implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# -*- coding: utf-8 -*-
 
 """
 The main component of OpenFlow controller.
 
 - Handle connections from switches
 - Generate and route events to appropriate entities like Ryu applications
+
+OpenFlow控制器的主要组件。
+-处理来自交换机的连接
+-生成事件并将其路由到适当的实体，如Ryu应用程序
 
 """
 
@@ -92,6 +82,7 @@ CONF.register_opts([
 def _split_addr(addr):
     """
     Splits a str of IP address and port pair into (host, port).
+    将字符串的IP 地址及端口，解析为（host,IP）格式
 
     Example::
 
@@ -101,6 +92,7 @@ def _split_addr(addr):
         ('::1', 6653)
 
     Raises ValueError if invalid format.
+    非法格式触发ValueError类型错误
 
     :param addr: A pair of IP address and port.
     :return: IP address and port

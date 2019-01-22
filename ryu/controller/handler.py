@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # Copyright (C) 2011-2014 Nippon Telegraph and Telephone Corporation.
 # Copyright (C) 2011, 2012 Isaku Yamahata <yamahata at valinux co jp>
 #
@@ -56,6 +57,10 @@ def set_ev_cls(ev_cls, dispatchers=None):
     (or a list of them) for which events should be generated for this handler.
     Note that, in case an event changes the phase, the phase before the change
     is used to check the interest.
+
+    Ryu应用程序的装饰器，用于声明事件处理程序
+    装饰方法将成为事件处理程序。
+    ev_cls是一个事件类，它的实例是RyuApp想要接收的。
 
     .. tabularcolumns:: |l|L|
 
