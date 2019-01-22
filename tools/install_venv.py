@@ -11,8 +11,9 @@ import os
 import subprocess
 import sys
 
-
+# ROOT 路径，本脚本所在的绝对路径的上层路径
 ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+#
 VENV = os.path.join(ROOT, '.venv')
 
 # 相关需求项的列表
@@ -33,6 +34,8 @@ def run_command(cmd, redirect_output=True, check_exit_code=True):
     """
     Runs a command in an out-of-process shell, returning the
     output of that command.  Working directory is ROOT.
+    执行命令，在一个程序外的shell进程,
+    执行目录为ROOT
     """
     # subprocess模块用于产生子进程
     # 如果参数为redirect_output ，则创建PIPE
@@ -68,20 +71,25 @@ def check_dependencies():
     if not HAS_VIRTUALENV:
         raise Exception('Virtualenv not found. ' + \
                          'Try installing python-virtualenv')
-    print 'done.'
+    print 'check_dependencies done.'
 
 
 def create_virtualenv(venv=VENV, install_pip=False):
     """Creates the virtual environment and installs PIP only into the
     virtual environment
+
     """
     print 'Creating venv...',
 
+    # -q 表示安静模式
+    # run_command在上层目录执行命令，即其虚拟空间在tools目录的上一层
     install = ['virtualenv', '-q', venv]
     run_command(install)
 
     print 'done.'
     print 'Installing pip in virtualenv...',
+    # 通过调用脚本，激活虚拟环境并执行shell 指令
+    # bin/activate && easy_install pip>1.0
     if install_pip and \
             not run_command(['tools/with_venv.sh', 'easy_install',
                              'pip>1.0']):
@@ -130,8 +138,11 @@ def print_help():
 
 
 def main(argv):
+    # 检查以来，是否已安装Virtualenv
     check_dependencies()
+    # 创建虚拟环境
     create_virtualenv()
+    # 安装依赖包
     install_dependencies()
     print_help()
 
