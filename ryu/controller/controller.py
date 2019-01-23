@@ -199,7 +199,7 @@ def _deactivate(method):
 
     return deactivate
 
-
+# ProtocolDesc 的子类
 class Datapath(ofproto_protocol.ProtocolDesc):
     """
     A class to describe an OpenFlow switch connected to this controller.
@@ -272,6 +272,7 @@ class Datapath(ofproto_protocol.ProtocolDesc):
         # 限制是任意的。
         # 我们需要限制队列大小以防止它占用内存。
         self.send_q = hub.Queue(16)
+        # 有限信号量
         self._send_q_sem = hub.BoundedSemaphore(self.send_q.maxsize)
 
         self.echo_request_interval = CONF.echo_request_interval
@@ -283,12 +284,14 @@ class Datapath(ofproto_protocol.ProtocolDesc):
         self._ports = None
         self.flow_format = ofproto_v1_0.NXFF_OPENFLOW10
         self.ofp_brick = ryu.base.app_manager.lookup_service_brick('ofp_event')
+        # 状态标识
         self.state = None  # for pylint
         self.set_state(HANDSHAKE_DISPATCHER)
 
     def _close_write(self):
         # Note: Close only further sends in order to wait for the switch to
         # disconnect this connection.
+        # 注意：仅关闭进一步发送以等待交换机断开此连接。
         try:
             self.socket.shutdown(SHUT_WR)
         except (EOFError, IOError):
@@ -376,8 +379,11 @@ class Datapath(ofproto_protocol.ProtocolDesc):
     def _send_loop(self):
         try:
             while self.state != DEAD_DISPATCHER:
+                # send_q 为绿色队列
                 buf, close_socket = self.send_q.get()
+                # 释放一个信号量
                 self._send_q_sem.release()
+                # sendall 表示发送所有数据
                 self.socket.sendall(buf)
                 if close_socket:
                     break
@@ -392,15 +398,19 @@ class Datapath(ofproto_protocol.ProtocolDesc):
         finally:
             q = self.send_q
             # First, clear self.send_q to prevent new references.
+            # 首先，清除self.send_q以防止新引用。
             self.send_q = None
             # Now, drain the send_q, releasing the associated semaphore for each entry.
             # This should release all threads waiting to acquire the semaphore.
+            # 现在，耗尽send_q，释放每个条目的相关信号量。
+            # 这应该释放所有等待获取信号量的线程。
             try:
                 while q.get(block=False):
                     self._send_q_sem.release()
             except hub.QueueEmpty:
                 pass
             # Finally, disallow further sends.
+            # 最后，禁止进一步发送。
             self._close_write()
 
     def send(self, buf, close_socket=False):
@@ -416,6 +426,7 @@ class Datapath(ofproto_protocol.ProtocolDesc):
                       self.address)
         return msg_enqueued
 
+    # 设置事物ID
     def set_xid(self, msg):
         self.xid += 1
         self.xid &= self.ofproto.MAX_XID
@@ -423,7 +434,9 @@ class Datapath(ofproto_protocol.ProtocolDesc):
         return self.xid
 
     def send_msg(self, msg, close_socket=False):
+        # 判断其是否为MsgBase 基类的一个实例
         assert isinstance(msg, self.ofproto_parser.MsgBase)
+        # 设置事物ID
         if msg.xid is None:
             self.set_xid(msg)
         msg.serialize()
@@ -448,12 +461,15 @@ class Datapath(ofproto_protocol.ProtocolDesc):
             pass
 
     def serve(self):
+        # 启动_send_loop 线程
         send_thr = hub.spawn(self._send_loop)
 
         # send hello message immediately
+        # 立即发送hello消息
         hello = self.ofproto_parser.OFPHello(self)
         self.send_msg(hello)
 
+        # 启动_echo_request_loop 线程
         echo_thr = hub.spawn(self._echo_request_loop)
 
         try:
@@ -540,6 +556,7 @@ def datapath_connection_factory(socket, address):
     # 利用(socket, address)创建Datapath 对象
     with contextlib.closing(Datapath(socket, address)) as datapath:
         try:
+            # 调用datapath 对象的serve方法,发送hello 消息
             datapath.serve()
         except:
             # Something went wrong.

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2011, 2012 Nippon Telegraph and Telephone Corporation.
 # Copyright (C) 2011 Isaku Yamahata <yamahata at valinux co jp>
 #
@@ -188,7 +189,11 @@ class MsgBase(StringifyMixin):
     """
     This is a base class for OpenFlow message classes.
 
+
     An instance of this class has at least the following attributes.
+
+    openflow 消息的基类
+
 
     ========= ==============================
     Attribute Description
@@ -211,7 +216,7 @@ class MsgBase(StringifyMixin):
         self.msg_len = None
         self.xid = None
         self.buf = None
-
+    # 设置消息头
     def set_headers(self, version, msg_type, msg_len, xid):
         assert msg_type == self.cls_msg_type
 

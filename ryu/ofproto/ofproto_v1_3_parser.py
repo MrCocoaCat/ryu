@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2012 Nippon Telegraph and Telephone Corporation.
 # Copyright (C) 2012, 2013 Isaku Yamahata <yamahata at valinux co jp>
 #
@@ -105,6 +106,10 @@ class OFPHello(MsgBase):
 
     This message is handled by the Ryu framework, so the Ryu application
     do not need to process this typically.
+
+    Hello 消息
+    这个消息在连接初始时发送
+    这个消息有Ryu 框架掌控，Ryu App无需处理此消息
 
     ========== =========================================================
     Attribute  Description

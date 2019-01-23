@@ -22,6 +22,7 @@ import sys
 LOG = logging.getLogger('ryu.controller.handler')
 
 # just represent OF datapath state. datapath specific so should be moved.
+# 即表示识OF datapath的路径状态
 HANDSHAKE_DISPATCHER = "handshake"
 CONFIG_DISPATCHER = "config"
 MAIN_DISPATCHER = "main"

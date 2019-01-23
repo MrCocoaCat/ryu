@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 # Copyright (C) 2014 Nippon Telegraph and Telephone Corporation.
 # Copyright (C) 2014 YAMAMOTO Takashi <yamamoto at valinux co jp>
 #
@@ -49,10 +50,13 @@ def set_app_supported_versions(vers):
 class ProtocolDesc(object):
     """
     OpenFlow protocol version flavor descriptor
+    OpenFlow协议版本的flavor描述符
+
     """
 
     def __init__(self, version=None):
         if version is None:
+            # 如果未指定版本，则设置其为最新版本
             version = max(_supported_versions)
         self.set_version(version)
 
