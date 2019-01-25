@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2016 Nippon Telegraph and Telephone Corporation.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +13,6 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import json
 
 from ryu.app import simple_switch_13
@@ -31,23 +31,27 @@ url = '/simpleswitch/mactable/{dpid}'
 
 class SimpleSwitchRest13(simple_switch_13.SimpleSwitch13):
 
+    #類別變數_CONTEXT 是用來製定Ryu 中所支援的WSGI 網頁伺服器所對應的類別。
+    # 因此可以透過wsgi Key 來取得WSGI 網頁伺服器的實體。
     _CONTEXTS = {'wsgi': WSGIApplication}
 
     def __init__(self, *args, **kwargs):
         super(SimpleSwitchRest13, self).__init__(*args, **kwargs)
         self.switches = {}
         wsgi = kwargs['wsgi']
-        wsgi.register(SimpleSwitchController,
-                      {simple_switch_instance_name: self})
+        wsgi.register(SimpleSwitchController, {simple_switch_instance_name: self})
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
         super(SimpleSwitchRest13, self).switch_features_handler(ev)
         datapath = ev.msg.datapath
+        # switches字典，存放datapath.id:datapath
         self.switches[datapath.id] = datapath
+        # mac_to_port 字典，存放datapath.id:
         self.mac_to_port.setdefault(datapath.id, {})
 
     def set_mac_to_port(self, dpid, entry):
+        # 获取到这个交换机的字典，其存放mac:port 键值对
         mac_table = self.mac_to_port.setdefault(dpid, {})
         datapath = self.switches.get(dpid)
 
@@ -56,12 +60,14 @@ class SimpleSwitchRest13(simple_switch_13.SimpleSwitch13):
 
         if datapath is not None:
             parser = datapath.ofproto_parser
+            # values() 获取字典的value
             if entry_port not in mac_table.values():
-
+                #  获取字典的每一个元素
                 for mac, port in mac_table.items():
 
                     # from known device to new device
                     actions = [parser.OFPActionOutput(entry_port)]
+                    # 封包
                     match = parser.OFPMatch(in_port=port, eth_dst=entry_mac)
                     self.add_flow(datapath, 1, match, actions)
 
@@ -83,7 +89,7 @@ class SimpleSwitchController(ControllerBase):
     @route('simpleswitch', url, methods=['GET'],
            requirements={'dpid': dpid_lib.DPID_PATTERN})
     def list_mac_table(self, req, **kwargs):
-
+        #  返回列表
         simple_switch = self.simple_switch_app
         dpid = dpid_lib.str_to_dpid(kwargs['dpid'])
 
