@@ -58,6 +58,49 @@ class SimpleSwitch13(app_manager.RyuApp):
         actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
                                           ofproto.OFPCML_NO_BUFFER)]
         self.add_flow(datapath, 1, match, actions)
+        datapath_id = hex(datapath.id)
+        print datapath_id
+
+        if datapath_id == "0x720756b76142":
+            # tap1
+            match1 = parser.OFPMatch(in_port=3, eth_src="3e:ef:3d:57:84:da")
+            actions1 = [parser.OFPActionOutput(4)]
+            self.add_flow(datapath, 5, match1, actions1)
+            # tap2
+            match2 = parser.OFPMatch(in_port=3, eth_src="a2:64:d0:6b:86:df")
+            actions2 = [parser.OFPActionOutput(2)]
+            self.add_flow(datapath, 5, match2, actions2)
+
+            match3 = parser.OFPMatch(in_port=4)
+            actions3 = [parser.OFPActionOutput(3)]
+            self.add_flow(datapath, 5, match3, actions3)
+            match4 = parser.OFPMatch(in_port=2)
+            action4 = [parser.OFPActionOutput(3)]
+            self.add_flow(datapath, 5, match4, action4)
+
+        elif datapath_id == "0x12c37da24148":
+            # tap1
+            match1 = parser.OFPMatch(in_port=1, eth_src="a2:64:d0:6b:86:df")
+            actions1 = [parser.OFPActionOutput(7)]
+            self.add_flow(datapath, 5, match1, actions1)
+
+            match2 = parser.OFPMatch(in_port=7, eth_src="3e:ef:3d:57:84:da")
+            actions2 = [parser.OFPActionOutput(1)]
+            self.add_flow(datapath, 5, match2, actions2)
+
+
+            # tap2
+            match2 = parser.OFPMatch(in_port=1, eth_src="3e:ef:3d:57:84:da")
+            actions2 = [parser.OFPActionOutput(8)]
+            self.add_flow(datapath, 5, match2, actions2)
+
+            match3 = parser.OFPMatch(in_port=8, eth_src="a2:64:d0:6b:86:df")
+            actions3 = [parser.OFPActionOutput(1)]
+            self.add_flow(datapath, 5, match3, actions3)
+
+
+
+
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
