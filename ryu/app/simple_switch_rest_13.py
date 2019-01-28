@@ -29,9 +29,10 @@ simple_switch_instance_name = 'simple_switch_api_app'
 url = '/simpleswitch/mactable/{dpid}'
 
 
+# 交换机程序，继承于SimpleSwitch13
 class SimpleSwitchRest13(simple_switch_13.SimpleSwitch13):
 
-    #類別變數_CONTEXT 是用來製定Ryu 中所支援的WSGI 網頁伺服器所對應的類別。
+    # 类别变量CONTEXT 是用來制定Ryu 中所使用的WSGI 网页服务器所对应的类别。
     # 因此可以透過wsgi Key 來取得WSGI 網頁伺服器的實體。
     _CONTEXTS = {'wsgi': WSGIApplication}
 
@@ -39,6 +40,7 @@ class SimpleSwitchRest13(simple_switch_13.SimpleSwitch13):
         super(SimpleSwitchRest13, self).__init__(*args, **kwargs)
         self.switches = {}
         wsgi = kwargs['wsgi']
+        # 注册
         wsgi.register(SimpleSwitchController, {simple_switch_instance_name: self})
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
@@ -49,12 +51,15 @@ class SimpleSwitchRest13(simple_switch_13.SimpleSwitch13):
         self.switches[datapath.id] = datapath
         # mac_to_port 字典，存放datapath.id:
         self.mac_to_port.setdefault(datapath.id, {})
+        print self.mac_to_port
+        #print "%d " % datapath.id
 
     def set_mac_to_port(self, dpid, entry):
         # 获取到这个交换机的字典，其存放mac:port 键值对
         mac_table = self.mac_to_port.setdefault(dpid, {})
         datapath = self.switches.get(dpid)
 
+        # entry 是传入的字典参数
         entry_port = entry['port']
         entry_mac = entry['mac']
 
@@ -80,13 +85,14 @@ class SimpleSwitchRest13(simple_switch_13.SimpleSwitch13):
         return mac_table
 
 
+# 连接控制器
 class SimpleSwitchController(ControllerBase):
 
     def __init__(self, req, link, data, **config):
         super(SimpleSwitchController, self).__init__(req, link, data, **config)
         self.simple_switch_app = data[simple_switch_instance_name]
 
-    @route('simpleswitch', url, methods=['GET'],
+    @route('simpleswitch', '/simpleswitch/mactable/{dpid}', methods=['GET'],
            requirements={'dpid': dpid_lib.DPID_PATTERN})
     def list_mac_table(self, req, **kwargs):
         #  返回列表
@@ -97,14 +103,16 @@ class SimpleSwitchController(ControllerBase):
             return Response(status=404)
 
         mac_table = simple_switch.mac_to_port.get(dpid, {})
+        # 将python 类型转换为json 类型
         body = json.dumps(mac_table)
         return Response(content_type='application/json', body=body)
 
-    @route('simpleswitch', url, methods=['PUT'],
+    @route('simpleswitch', '/simpleswitch/mactable/{dpid}', methods=['PUT'],
            requirements={'dpid': dpid_lib.DPID_PATTERN})
     def put_mac_table(self, req, **kwargs):
 
         simple_switch = self.simple_switch_app
+        # 将字符串转换为16进制int
         dpid = dpid_lib.str_to_dpid(kwargs['dpid'])
         try:
             new_entry = req.json if req.body else {}
@@ -115,6 +123,7 @@ class SimpleSwitchController(ControllerBase):
             return Response(status=404)
 
         try:
+            # 调用set_mac_to_port 函数
             mac_table = simple_switch.set_mac_to_port(dpid, new_entry)
             body = json.dumps(mac_table)
             return Response(content_type='application/json', body=body)
