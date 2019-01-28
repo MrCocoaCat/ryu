@@ -51,9 +51,9 @@ class SimpleSwitch13(app_manager.RyuApp):
         # ev.mag 存储消息类别实例，ryu.ofproto.ofproto_v1_3_parser.OFPSwitchFeatures
         # datapath 类存储讯息相关事件 ryu.controller.controller.Datapath
         datapath = ev.msg.datapath
-        print datapath
+       # print datapath
         ofproto = datapath.ofproto
-        print ofproto
+      #  print ofproto
         parser = datapath.ofproto_parser
 
         # install table-miss flow entry
@@ -89,7 +89,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         msg = ev.msg
         datapath = msg.datapath
         ofproto = datapath.ofproto
-        print msg
+        # print msg
         parser = datapath.ofproto_parser
         in_port = msg.match['in_port']
         # 获取源地址，目的地址
@@ -108,6 +108,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         self.logger.info("packet in %x %s %s %s", dpid, src, dst, in_port)
         # learn a mac address to avoid FLOOD next time.
         self.mac_to_port[dpid][src] = in_port
+        #print self.mac_to_port
 
         # 如果目的IP 在字典中，获取其值
         if dst in self.mac_to_port[dpid]:
