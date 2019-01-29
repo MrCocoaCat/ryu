@@ -44,12 +44,12 @@ if HUB_TYPE == 'eventlet':
         # **kwargs 为字典类型，删除其‘raise_error ’，如果无键值，则返货False
         raise_error = kwargs.pop('raise_error', False)
 
-
         def _launch(func, *args, **kwargs):
             # Mimic gevent's default raise_error=False behaviour
             # by not propagating an exception to the joiner.
             try:
                 return func(*args, **kwargs)
+            # TaskExit - greenlet.GreenletExit
             except TaskExit:
                 pass
             except BaseException as e:
@@ -95,6 +95,7 @@ if HUB_TYPE == 'eventlet':
             # greenthread.
             try:
                 t.wait()
+            # TaskExit 为强制退出异常
             except TaskExit:
                 pass
 
