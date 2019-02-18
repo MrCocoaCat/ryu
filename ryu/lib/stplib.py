@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2013 Nippon Telegraph and Telephone Corporation.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+# stplib.py 是用來提供BPDU 封包的交換和连接域的角色、状态管理的生成树函数库
 
 import datetime
 import logging
@@ -89,6 +92,23 @@ NON_DESIGNATED_PORT = 2  # The port which blocked.
 #  LISTEN : Not learning or relaying frames.
 #  LEARN  : Learning but not relaying frames.
 #  FORWARD: Learning and relaying frames.
+
+# Port state
+#  DISABLE: Administratively down or link down by an obstacle.
+#  BLOCK  : Not part of spanning tree.
+#  LISTEN : Not learning or relaying frames.
+#  LEARN  : Learning but not relaying frames.
+#  FORWARD: Learning and relaying frames.
+
+
+# 端口状态
+# Disabled：禁用状态。端口既不处理和转发BPDU报文，也不转发用户流量。
+# Block：阻塞状态。端口仅仅能接收并处理BPDU，不能转发BPDU，也不能转发用户流量。此状态是预备端口的最终状态。
+# Listen：侦听状态。端口可以转发BPDU报文，但不能转发用户流量。
+# Learning：学习状态。端口可根据收到的用户流量构建MAC地址表，但不转发用户流量。增加Learning状态是为了防止临时环路。
+# Forwarding：转发状态。端口既可转发用户流量也可转发BPDU报文，只有根端口或指定端口才能进入Forwarding状态。
+
+
 PORT_STATE_DISABLE = 0
 PORT_STATE_BLOCK = 1
 PORT_STATE_LISTEN = 2

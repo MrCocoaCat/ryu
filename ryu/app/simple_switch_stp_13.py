@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2016 Nippon Telegraph and Telephone Corporation.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +25,7 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet
 from ryu.app import simple_switch_13
 
+# 生成树协议
 
 class SimpleSwitch13(simple_switch_13.SimpleSwitch13):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
