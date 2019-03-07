@@ -52,37 +52,65 @@ class SimpleSwitch13(app_manager.RyuApp):
         datapath.send_msg(mod)
 
     @staticmethod
-    def clean_flow(datapath, in_port_list):
+    def clean_flow(datapath):
         print "begin clean flow ..."
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
         priority = 5
-        for in_port in in_port_list:
-            match = parser.OFPMatch(in_port=in_port)
-            mod = parser.OFPFlowMod(datapath,
-                                    cookie=0,
-                                    cookie_mask=0,
-                                    table_id=0,
-                                    command=ofproto.OFPFC_DELETE,
-                                    idle_timeout=0,
-                                    hard_timeout=0,
-                                    priority=priority,
-                                    buffer_id=ofproto.OFP_NO_BUFFER,
-                                    out_port=ofproto.OFPP_ANY,
-                                    out_group=ofproto.OFPG_ANY,
-                                    flags=0,
-                                    match=match)
-            datapath.send_msg(mod)
+        match = parser.OFPMatch()
+        mod = parser.OFPFlowMod(datapath,
+                                cookie=0,
+                                cookie_mask=0,
+                                table_id=0,
+                                command=ofproto.OFPFC_DELETE,
+                                idle_timeout=0,
+                                hard_timeout=0,
+                                priority=priority,
+                                buffer_id=ofproto.OFP_NO_BUFFER,
+                                out_port=ofproto.OFPP_ANY,
+                                out_group=ofproto.OFPG_ANY,
+                                flags=0,
+                                match=match)
+        datapath.send_msg(mod)
 
     def vxlan(self, datapath):
-        print("vxlan")
-        pass
-        # self.clean_flow(datapath, self.sw1)
-        # parser = datapath.ofproto_parser
-        # match1 = parser.OFPMatch(in_port=18, arp_sha="52:54:00:68:46:03", vlan_vid=600)
-        # #actions1 = [parser.OFPActionOutput(33)]
-        # actions1 = [parser.OFPActionPopVlan()]
-        # self.add_flow(datapath, 5, match1, actions1)
+
+        self.clean_flow(datapath)
+        ofproto = datapath.ofproto
+        parser = datapath.ofproto_parser
+        # 封包
+        #match = parser.OFPMatch(vlan_vid=(0x1000 | 600))
+        # 动作
+        match = parser.OFPMatch(in_port=17)
+        actions = [parser.OFPActionOutput(18)]
+        #actions = [ parser.OFPActionPushVlan(ethertype=33024, type_=None, len_=None)]
+
+       # actions = [parser.OFPActionPopVlan()]
+
+
+        # 指令
+        inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS,
+                                             actions)]
+
+        # 更改流表状态信息
+        mod = parser.OFPFlowMod(datapath,
+                                cookie=0,
+                                cookie_mask=0,
+                                table_id=0,
+                                # 增加流表
+                                command=ofproto.OFPFC_ADD,
+                                idle_timeout=0,
+                                hard_timeout=0,
+                                priority=5,
+                                buffer_id=ofproto.OFP_NO_BUFFER,
+                                out_port=ofproto.OFPP_ANY,
+                                out_group=ofproto.OFPG_ANY,
+                                flags=0,
+                                match=match,
+                                instructions=inst)
+
+        #datapath.send_msg(mod)
+
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
@@ -120,6 +148,43 @@ class SimpleSwitch13(app_manager.RyuApp):
     @set_ev_cls(ofp_event.EventOFPErrorMsg,[ CONFIG_DISPATCHER, MAIN_DISPATCHER])
     def error_msg_handler(self, ev):
         msg = ev.msg
-        print('OFPErrorMsg received: type=0x%02x code=0x%02x '
-                'message=%s', msg.type, msg.code, hex_array(msg.data))
+        TypeDct = {"OFPET_HELLO_FAILED" : 0,            # Hello protocol failed.
+                   "OFPET_BAD_REQUEST" : 1,              # Request was not understood.
+                    "OFPET_BAD_ACTION" : 2,               # Error in action description.
+                    "OFPET_BAD_INSTRUCTION": 3,           # Error in instruction list.
+                    "OFPET_BAD_MATCH": 4,                 # Error in match.
+                  "OFPET_FLOW_MOD_FAILED": 5,           # Problem modifying flow entry.
+                  "OFPET_GROUP_MOD_FAILED": 6,          # Problem modifying group entry.
+                  "OFPET_PORT_MOD_FAILED":7,           # OFPT_PORT_MOD failed.
+                  "OFPET_TABLE_MOD_FAILED": 8,          # Table mod request failed.
+                  "OFPET_QUEUE_OP_FAILED": 9,           # Queue operation failed.
+                  "OFPET_SWITCH_CONFIG_FAILED": 10,     # Switch config request failed.
+                  "OFPET_ROLE_REQUEST_FAILED": 11,      # Controller Role request failed.
+                  "OFPET_METER_MOD_FAILED": 12,         # Error in meter.
+                  "OFPET_TABLE_FEATURES_FAILED": 13,    # Setting table features failed.
+                  "OFPET_EXPERIMENTER" : 0xffff,         # Experimenter error messages.
+                  }
+        print 'OFPErrorMsg received: type=0x%02x code=0x%02x' % (msg.type, msg.code)
 
+    # pack-in
+    @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
+    def _packet_in_handler(self, ev):
+        if ev.msg.msg_len < ev.msg.total_len:
+            self.logger.debug("packet truncated: only %s of %s bytes",
+                              ev.msg.msg_len, ev.msg.total_len)
+        msg = ev.msg
+        datapath = msg.datapath
+        ofproto = datapath.ofproto
+        parser = datapath.ofproto_parser
+        data = msg.data
+
+        in_port = msg.match['in_port']
+        pkt = packet.Packet(data)
+        eth = pkt.get_protocols(ethernet.ethernet)[0]
+        # eth 为class ethernet 对象
+        dst = eth.dst
+        src = eth.src
+        ethertype = self._ETH_TYPE_DIC.get(eth.ethertype, "UNKNOW_TYPE")
+        datapath_id = hex(datapath.id)
+        self.logger.info("packet in %s -- ethertype:%s src:%s dst:%s in_port:%s ",
+                         datapath_id, ethertype, src, dst, in_port)
