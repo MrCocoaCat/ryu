@@ -21,7 +21,6 @@ class SimpleSwitch13(app_manager.RyuApp):
 
         self.switchDic = {"0x148bd3d3ad316": "192.168.125.43",
                           "0x1741f4aa82eef": "192.168.125.47"}
-
         self._ETH_TYPE_DIC = {0x0800: "TH_TYPE_IP",
                               0x0806: "ETH_TYPE_ARP",
                               0x6558: "ETH_TYPE_TEB",
@@ -34,7 +33,6 @@ class SimpleSwitch13(app_manager.RyuApp):
                               0x88e7: "ETH_TYPE_8021AH",
                               0x05dc: "ETH_TYPE_IEEE802_3",
                               0x8902: "ETH_TYPE_CFM"}
-
         self.dataPathDic = {}
 
     @staticmethod
