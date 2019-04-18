@@ -92,7 +92,7 @@ def main(args=None, prog=None):
     app_mgr = AppManager.get_instance()
     # 加载app_lists中的app
     app_mgr.load_apps(app_lists)
-    #
+    # 创建上下文
     contexts = app_mgr.create_contexts()
     services = []
     services.extend(app_mgr.instantiate_apps(**contexts))

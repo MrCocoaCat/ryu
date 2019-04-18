@@ -1,4 +1,5 @@
 #!/bin/sh
+
 # vim: tabstop=4 shiftwidth=4 softtabstop=4
 
 # $@ 为所有参数
@@ -6,4 +7,5 @@
 TOOLS=`dirname $0`
 # 在脚本的上一层创建虚拟环境
 VENV=$TOOLS/../.venv
-. $VENV/bin/activate && $@
+
+source $VENV/bin/activate && $@
