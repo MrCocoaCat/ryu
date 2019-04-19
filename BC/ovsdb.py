@@ -1,5 +1,6 @@
-import uuid
+# -*- coding: utf-8 -*-
 
+import uuid
 from ryu.base import app_manager
 from ryu.controller.handler import set_ev_cls
 from ryu.services.protocols.ovsdb import api as ovsdb
