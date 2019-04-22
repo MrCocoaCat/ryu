@@ -2,7 +2,7 @@
 # @Time    : 2019/4/18 14:24
 # @Author  : MrCocoaCat
 # @Email   : MrCocoaCat@aliyun.com
-# @File    : vsctl_test.py
+# @File    : OVSDB_vsctl.py
 
 from ryu.lib.ovs import vsctl
 
@@ -29,11 +29,11 @@ ovs_vsctl = vsctl.VSCtl(OVSDB_ADDR)
 # 'br-get-external-id'
 
 #  添加网桥test，需要一个或三个参数
-command = vsctl.VSCtlCommand(command='add-br', args=['test'], options="--may-exist")
+command1 = vsctl.VSCtlCommand(command='add-br', args=['test'])
 command = vsctl.VSCtlCommand(command='add-br', args=['test', 's1', 10], options="--may-exist")
 
 #  删除网桥test
-command = vsctl.VSCtlCommand(command='del-br', args=['test'], options=" --if-exists")
+command = vsctl.VSCtlCommand(command='del-br', args=['test'])
 
 # 显示所有网桥
 # --fake
@@ -71,7 +71,7 @@ command = vsctl.VSCtlCommand(command='port-to-br', args=['port2'])
 
 
 # Interface commands.
-# 'list-ifaces' 显示网桥内所有的
+# 'list-ifaces' 显示网桥内所有的Interface
 command = vsctl.VSCtlCommand(command='list-ifaces', args=['s1'])
 
 # 'iface-to-br' 显示属于inter 的网桥信息
@@ -90,7 +90,7 @@ command = vsctl.VSCtlCommand(command='get-controller', args=['s1'])
 # 'set-fail-mode'
 
 # 执行命令
-ovs_vsctl.run_command([command])
+ovs_vsctl.run_command([command1])
 
 
 print(command.result)
