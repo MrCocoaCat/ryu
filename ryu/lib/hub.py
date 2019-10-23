@@ -9,6 +9,7 @@ from ryu.lib import ip
 # We don't bother to use cfg.py because monkey patch needs to be
 # called very early. Instead, we use an environment variable to
 # select the type of hub.
+# 获取环境变量，默认为eventlet
 HUB_TYPE = os.getenv('RYU_HUB_TYPE', 'eventlet')
 
 # Return a logger with the specified name, creating it if necessary
