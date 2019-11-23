@@ -65,6 +65,7 @@ def _get_log_file():
     if CONF.log_file:
         return CONF.log_file
     if CONF.log_dir:
+        # inspect.stack()[-1][1] 获取当前文件路径
         return os.path.join(CONF.log_dir,
                             os.path.basename(inspect.stack()[-1][1])) + '.log'
     return None
