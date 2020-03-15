@@ -9,6 +9,7 @@ from ryu.lib.packet import ethernet
 from ryu.lib.packet import ether_types
 import ryu.app.ofctl.api
 
+
 # 继承ryu.base.app_manager.RyuApp
 class SimpleSwitch13(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
@@ -79,8 +80,6 @@ class SimpleSwitch13(app_manager.RyuApp):
         parser = datapath.ofproto_parser
         # 在iptable 之间加入路由器
         # 28 为路由 25为iptable
-
-
         # 29 为119服务器，33为小交换机
         match1 = parser.OFPMatch(in_port=29, )
         actions1 = [parser.OFPActionOutput(33)]
@@ -88,8 +87,6 @@ class SimpleSwitch13(app_manager.RyuApp):
         actions2 = [parser.OFPActionOutput(29)]
         self.add_flow(datapath, 5, match1, actions1)
         self.add_flow(datapath, 5, match2, actions2)
-
-
 
     def switch2(self, datapath):
         self.clean_flow(datapath, self.sw2)
@@ -111,7 +108,6 @@ class SimpleSwitch13(app_manager.RyuApp):
         actions6 = [parser.OFPActionOutput(11)]
         self.add_flow(datapath, 5, match5, actions5)
         self.add_flow(datapath, 5, match6, actions6)
-
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
@@ -172,7 +168,7 @@ class SimpleSwitch13(app_manager.RyuApp):
                 out = parser.OFPPacketOut(datapath=temp_dp, buffer_id=ofproto.OFP_NO_BUFFER,
                                           in_port=ofproto.OFPP_CONTROLLER, actions=actions, data=data)
                 temp_dp.send_msg(out)
-            elif in_port == 8 :
+            elif in_port == 8:
                 temp_dp = self.dataPathDic.get("0x148bd3d3ad316", None)
                 if temp_dp is None:
                     return
@@ -207,5 +203,3 @@ class SimpleSwitch13(app_manager.RyuApp):
                 out = parser.OFPPacketOut(datapath=temp_dp, buffer_id=ofproto.OFP_NO_BUFFER,
                                           in_port=ofproto.OFPP_CONTROLLER, actions=actions, data=data)
                 temp_dp.send_msg(out)
-
-

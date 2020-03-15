@@ -11,7 +11,7 @@ OVSDB_ADDR = 'tcp:127.0.0.1:6640'
 
 # 判断格式是否正确
 #
-#vsctl.valid_ovsdb_addr(OVSDB_ADDR)
+# vsctl.valid_ovsdb_addr(OVSDB_ADDR)
 
 # 绑定网桥
 ovs_vsctl = vsctl.VSCtl(OVSDB_ADDR)
