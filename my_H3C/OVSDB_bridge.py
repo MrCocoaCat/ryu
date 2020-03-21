@@ -38,13 +38,10 @@ print(conf.protocols)
 br = bridge.OVSBridge(CONF=conf, datapath_id=None, ovsdb_addr=OVSDB_ADDR)
 br.br_name = 's1'
 ret = br.get_datapath_id()
-print(ret)
-
-exit(0)
-
-br.br_name = 's1'
 # print(br.br_name)
-
-br.add_tunnel_port("vxlan1", "vxlan", "1.1.1.1", local_ip="1.1.1.0", key=1111, ofport=None)
+br.add_tunnel_port(name="vxlan-211212",
+                   tunnel_type="vxlan",
+                   remote_ip="1.1.1.1",
+                   key='flow',)
 
 

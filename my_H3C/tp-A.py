@@ -37,7 +37,7 @@ class SimpleSwitch13(app_manager.RyuApp):
 
     @staticmethod
     def add_flow(datapath, priority, match, actions):
-        print "begin add flow :", match
+        print("begin add flow :", match)
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
         inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS,
@@ -50,7 +50,7 @@ class SimpleSwitch13(app_manager.RyuApp):
 
     @staticmethod
     def clean_flow(datapath, in_port_list):
-        print "begin clean flow ..."
+        print("begin clean flow ...")
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
         priority = 5
@@ -72,7 +72,7 @@ class SimpleSwitch13(app_manager.RyuApp):
             datapath.send_msg(mod)
 
     def switch1(self, datapath):
-        print "switch1-192.168.125.43"
+        print("switch1-192.168.125.43")
         self.clean_flow(datapath, self.sw1)
         parser = datapath.ofproto_parser
         # 在iptable 之间加入路由器
@@ -97,7 +97,7 @@ class SimpleSwitch13(app_manager.RyuApp):
 
     def switch2(self, datapath):
         self.clean_flow(datapath, self.sw2)
-        print "switch2-192.168.125.47"
+        # print "switch2-192.168.125.47"
         parser = datapath.ofproto_parser
         # 9为125服务器，14为大交换机端口
         match3 = parser.OFPMatch(in_port=14)
@@ -129,8 +129,8 @@ class SimpleSwitch13(app_manager.RyuApp):
         datapath = ev.msg.datapath
         datapath_id = hex(datapath.id)
         self.dataPathDic.setdefault(datapath_id, datapath)
-        print self.dataPathDic
-        print "datapath id :%x switch IP:%s" % (datapath.id, self.switchDic[datapath_id])
+        print(self.dataPathDic)
+        print("datapath id :%x switch IP:%s" % (datapath.id, self.switchDic[datapath_id]))
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
         match = parser.OFPMatch()
