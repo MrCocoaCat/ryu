@@ -8,6 +8,7 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet
 from ryu.lib.packet import ether_types
 
+
 # 继承ryu.base.app_manager.RyuApp
 class SimpleSwitch13(app_manager.RyuApp):
     # 指定openflow版本
@@ -42,18 +43,13 @@ class SimpleSwitch13(app_manager.RyuApp):
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
-        # 事件管理
-        # 事件物件（Event Object ）做為參數
         # ryu.controller.handler.set_ev_cls 最为其修飾函數
-        # ryu.controller.ofp_event.EventOFP<消息名称>
-        # ofp_event.EventOFP<SwitchFeatures>即消息类型为SwitchFeatures
         # CONFIG_DISPATCHER状态：接收SwitchFeatures 訊息
         # ev.mag 存储消息类别实例，ryu.ofproto.ofproto_v1_3_parser.OFPSwitchFeatures
         # datapath 类存储讯息相关事件 ryu.controller.controller.Datapath
         datapath = ev.msg.datapath
-       # print datapath
+        #print("{:0>16x}".format(datapath.id))
         ofproto = datapath.ofproto
-      #  print ofproto
         parser = datapath.ofproto_parser
 
         # install table-miss flow entry
@@ -78,7 +74,6 @@ class SimpleSwitch13(app_manager.RyuApp):
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
-        # 未 match 任何一个FLOW Entry 时，触发Packet-in
         # PacketIn事件，接收位置目的的封包
         # MAIN_DISPATCHER：一般状态
         # If you hit this you might want to increase
@@ -89,8 +84,8 @@ class SimpleSwitch13(app_manager.RyuApp):
         msg = ev.msg
         datapath = msg.datapath
         ofproto = datapath.ofproto
-        # print msg
         parser = datapath.ofproto_parser
+
         in_port = msg.match['in_port']
         # 获取源地址，目的地址
         pkt = packet.Packet(msg.data)
@@ -105,16 +100,15 @@ class SimpleSwitch13(app_manager.RyuApp):
         # 查找键值，若无想对应的键值，则设置
         # 如果字典中包含有给定键，则返回该键对应的值，否则返回为该键设置的值。
         self.mac_to_port.setdefault(dpid, {})
-        self.logger.info("packet in %x %s %s %s", dpid, src, dst, in_port)
+        # self.logger.info("packet in %x %s %s %s", dpid, src, dst, in_port)
         # learn a mac address to avoid FLOOD next time.
         self.mac_to_port[dpid][src] = in_port
-        #print self.mac_to_port
-
+        # print self.mac_to_port
         # 如果目的IP 在字典中，获取其值
         if dst in self.mac_to_port[dpid]:
             out_port = self.mac_to_port[dpid][dst]
         else:
-            # 否则，设为flood 发送
+            # 否则，设为flood发送
             out_port = ofproto.OFPP_FLOOD
         # 指定动作
         actions = [parser.OFPActionOutput(out_port)]

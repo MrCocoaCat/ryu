@@ -1027,7 +1027,6 @@ class VSCtl(object):
     def __init__(self, remote):
         super(VSCtl, self).__init__()
         self.remote = remote
-
         self.schema_json = None
         self.schema = None
         self.schema_helper = None

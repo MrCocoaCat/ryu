@@ -1,12 +1,8 @@
 # vim: tabstop=4 shiftwidth=4 softtabstop=4
-
-
-
 import os
 import sys
 from setuptools.command import easy_install
 from ryu import version
-
 
 # Global variables in this module doesn't work as we expect
 # because, during the setup procedure, this module seems to be

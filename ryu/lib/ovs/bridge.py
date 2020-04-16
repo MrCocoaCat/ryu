@@ -121,7 +121,6 @@ class OVSBridge(object):
         self.vsctl = ovs_vsctl.VSCtl(ovsdb_addr)
         self.timeout = timeout or CONF.ovsdb_timeout
         self.exception = exception
-
         self.br_name = None
 
     def run_command(self, commands):

@@ -22,9 +22,8 @@ from ryu.controller.handler import MAIN_DISPATCHER, DEAD_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.lib import hub
 
-# 继承SimpleSwitch13 含有路由功能
-class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
 
+class SimpleMonitor13(simple_switch_13.SimpleSwitch13):
     def __init__(self, *args, **kwargs):
         super(SimpleMonitor13, self).__init__(*args, **kwargs)
         # 定义字典

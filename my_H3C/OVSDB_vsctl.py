@@ -7,15 +7,24 @@
 from ryu.lib.ovs import vsctl
 
 
-OVSDB_ADDR = 'tcp:127.0.0.1:6640'
+
 
 # 判断格式是否正确
 #
 # vsctl.valid_ovsdb_addr(OVSDB_ADDR)
 
-# 绑定网桥
+OVSDB_ADDR = 'tcp:192.168.83.137:6640'
 ovs_vsctl = vsctl.VSCtl(OVSDB_ADDR)
+command = vsctl.VSCtlCommand(command='add-br', args=['s1'])
+command1 = vsctl.VSCtlCommand(command='set', args=['Bridge', 's1', 'protocols=OpenFlow13'])
+ovs_vsctl.run_command([command, command1])
+#ovs_vsctl.run_command([command1])
+print(command.result)
 
+
+
+# ovs_vsctl.run_command([command1])
+print(command1.result)
 # vsctl.VSCtlCommand 类用于定义命令
 
 # Bridge commands.
@@ -90,8 +99,5 @@ command = vsctl.VSCtlCommand(command='get-controller', args=['s1'])
 # 'set-fail-mode'
 
 # 执行命令
-ovs_vsctl.run_command([command1])
 
-
-print(command.result)
 

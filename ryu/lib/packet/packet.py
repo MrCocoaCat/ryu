@@ -59,10 +59,8 @@ class Packet(StringifyMixin):
     * data *是一个字节数组，用于描述要解码的原始数据报。
     解码时，Packet对象是可迭代的。
     迭代值是协议（ethernet，ipv4，...）标头和有效负载。
-  协议头是packet_base.PacketBase的子类的实例。
-  有效负载是一个bytearray。 它们以线上顺序迭代。
-
-
+    协议头是packet_base.PacketBase的子类的实例。
+   有效负载是一个bytearray。 它们以线上顺序迭代。
 
     """
 

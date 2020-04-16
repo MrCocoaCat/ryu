@@ -51,8 +51,8 @@ class SimpleSwitchRest13(simple_switch_13.SimpleSwitch13):
         self.switches[datapath.id] = datapath
         # mac_to_port 字典，存放datapath.id:
         self.mac_to_port.setdefault(datapath.id, {})
-        print self.mac_to_port
-        #print "%d " % datapath.id
+        for key, value in self.mac_to_port.items():
+            print(key + ':' + value)
 
     def set_mac_to_port(self, dpid, entry):
         # 获取到这个交换机的字典，其存放mac:port 键值对
@@ -103,7 +103,6 @@ class SimpleSwitchController(ControllerBase):
             return Response(status=404)
 
         mac_table = simple_switch.mac_to_port.get(dpid, {})
-        # 将python 类型转换为json 类型
         body = json.dumps(mac_table)
         return Response(content_type='application/json', body=body)
 

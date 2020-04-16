@@ -128,7 +128,6 @@ class RyuApp(object):
     A list of event classes which this RyuApp subclass would generate.
     This should be specified if and only if event classes are defined in
     a different python module from the RyuApp subclass is.
-    
     此RyuApp子类将生成的事件类列表。
     当且仅当事件类在与RyuApp子类不同的python模块中定义时，才应该指定这个
     """
@@ -137,10 +136,8 @@ class RyuApp(object):
     """
     A list of supported OpenFlow versions for this RyuApp.
     The default is all versions supported by the framework.
-    
     此RyuApp支持的OpenFlow版本列表。
     默认值是框架支持的所有版本。
-
     Examples::
 
         OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION,

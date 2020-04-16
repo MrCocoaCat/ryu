@@ -1,4 +1,4 @@
-:orphan:
+--app-lists APP_LISTS:orphan:········
 
 ryu-manager manual page
 =======================

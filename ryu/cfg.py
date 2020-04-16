@@ -1,4 +1,4 @@
-#- * - coding: UTF - 8 -*-
+# - * - coding: UTF - 8 -*-
 # Copyright (C) 2014 Nippon Telegraph and Telephone Corporation.
 # Copyright (C) 2014 YAMAMOTO Takashi <yamamoto at valinux co jp>
 #
