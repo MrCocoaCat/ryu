@@ -9,10 +9,16 @@ from webob.response import Response as webob_Response
 # 1 返回成功
 # 1000 初始化错误
 
-# 1100 添加Tunnel错误
+
+# 1100
+# 添加Tunnel错误
 # 1101 未初始化
 # 1102 无这个端口
 
+# 1200
+# 删除Tunnel错误
+# 1201 未初始化
+# 1202 无这个端口
 
 class ResponseTunnelBase(webob_Response):
     """
@@ -36,25 +42,30 @@ class ResponseSuccess(ResponseTunnelBase):
 
 
 # 1000
+# 添加Tunnel错误
 class ResponseErrorInitBase(ResponseTunnelBase):
     def __init__(self, num=1000, msg='', status=404):
         ms = 'Init Error:'
         ResponseTunnelBase.__init__(self, num=num, msg=ms + msg, status=status)
         print(self.__dict__)
 
+
 # 1100
 class ResponseErrorPortBase(ResponseTunnelBase):
-    def __init__(self, num=1100, msg='', status=404):
+    def __init__(self, num=0, msg='', status=404):
         ms = 'Tunnel Error:'
-        ResponseTunnelBase.__init__(self, num=num, msg=ms + msg, status=status)
+        base_num = 1100
+        ResponseTunnelBase.__init__(self, num=base_num + num, msg=ms + msg, status=status)
         print(self.__dict__)
 
 
+# 1101 未初始化
 class ResponseErrorNoInit(ResponseErrorPortBase):
     def __init__(self, msg="No Init ,please init first"):
-        ResponseErrorPortBase.__init__(self, num=1101, msg=msg, status=404)
+        ResponseErrorPortBase.__init__(self, num=1, msg=msg, status=404)
 
 
+# 1102 无这个端口
 class ResponseErrorNoPort(ResponseErrorPortBase):
     def __init__(self, msg="No this port"):
-        ResponseErrorPortBase.__init__(self, num=1102, msg=msg, status=404)
+        ResponseErrorPortBase.__init__(self, num=2, msg=msg, status=404)

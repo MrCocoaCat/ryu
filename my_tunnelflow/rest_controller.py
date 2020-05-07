@@ -174,7 +174,7 @@ class RestController(ControllerBase):
         server_name = req.environ['SERVER_NAME']
         host_ovsdb = ip_host_ovsdb_dict.setdefault(remote_addr, None)
         if host_ovsdb is None:
-            raise Response(status=404)
+            return ResponseErrorNoPort()
         else:
             br = bridge.OVSBridge(CONF=conf,
                                   datapath_id=host_ovsdb.dpid,
