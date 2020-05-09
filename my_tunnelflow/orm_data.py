@@ -12,7 +12,7 @@ class HostOvsdb:
         self.ovsdb_addr = 'tcp:%s:6640' % ip
         self.dpid = None
         self.ovsdb_uuid = None
-        self.br_name = 'br-tunnel'
+        self.br_name = 'br_tunnel'
         self.tunnel_port_name = None
         self.tunnel_port_id = None
 

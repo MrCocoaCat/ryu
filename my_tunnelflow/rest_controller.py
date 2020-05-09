@@ -37,6 +37,7 @@ opts = [
 ]
 conf = cfg.ConfigOpts()
 conf.register_cli_opts(opts)
+server_addr = "192.168.125.183"
 
 
 def add_flow(datapath, priority, match, actions, buffer_id=None):
@@ -84,7 +85,7 @@ class RestController(ControllerBase):
         super(RestController, self).__init__(req, link, data, **config)
         self.simple_switch_app = data[simple_switch_instance_name]
 
-    def init_bridge(self, remote_addr, server_addr):
+    def init_bridge(self, remote_addr):
         host_ovsdb = HostOvsdb(remote_addr)
         br = bridge.OVSBridge(CONF=conf,
                               datapath_id=None,
@@ -107,6 +108,7 @@ class RestController(ControllerBase):
                               key='flow')
         host_ovsdb.tunnel_port_id = br.get_ofport(conf.tunnel_port)
         ip_host_ovsdb_dict[host_ovsdb.ip] = host_ovsdb
+        return host_ovsdb.br_name
 
     @route('simpleswitch', '/tunnel/{port}', methods=['GET'])
     def get_port(self, req, **kwargs):
@@ -123,6 +125,9 @@ class RestController(ControllerBase):
         br.init()
         if port not in br.get_port_name_list():
             return Response(content_type='application/json', status=404)
+        else:
+            t_p = tunnel_message_dict[port]
+            return ResponseSuccess(msg=t_p.get_dic_json())
 
     @route('simpleswitch', '/tunnel/{port}', methods=['PUT'])
     def put_port(self, req, **kwargs):
@@ -133,7 +138,7 @@ class RestController(ControllerBase):
             t_mes = TunnelMessage(new_entry)
 
             remote_addr = req.environ['REMOTE_ADDR']
-            server_name = req.environ['SERVER_NAME']
+            # server_name = req.environ['SERVER_NAME']
             host_ovsdb = ip_host_ovsdb_dict.setdefault(remote_addr, None)
             if host_ovsdb is None:
                 return ResponseErrorNoInit()
@@ -148,7 +153,7 @@ class RestController(ControllerBase):
             if t_mes.local_ip is None:
                 t_mes.local_ip = remote_addr
             tunnel_message_dict[t_mes.port_name] = t_mes
-            datapath = simple_switch.switches.get(host_ovsdb.dpid)
+            datapath = simple_switch.switches_datapath.get(host_ovsdb.dpid)
             if datapath is not None:
                 parser = datapath.ofproto_parser
                 # ofproto = datapath.ofproto
@@ -164,8 +169,12 @@ class RestController(ControllerBase):
                 actions2 = [parser.OFPActionOutput(t_mes.port_id)]
                 match2 = parser.OFPMatch(in_port=host_ovsdb.tunnel_port_id, tunnel_id=t_mes.tunnel_id)
                 add_flow(datapath, 3, match2, actions2)
+            else:
+                raise Exception("no depapath")
         except Exception as e:
             return ResponseErrorPortBase(msg=str(e))
+        else:
+            return ResponseSuccess()
 
     @route('simpleswitch', '/tunnel/{port}', methods=['DELETE'])
     def delete_port(self, req, **kwargs):
@@ -183,7 +192,7 @@ class RestController(ControllerBase):
         t_mes = tunnel_message_dict.setdefault(port)
         if t_mes is None:
             return ResponseErrorNoPort()
-        datapath = self.simple_switch_app.switches.get(host_ovsdb.dpid)
+        datapath = self.simple_switch_app.switches_datapath.get(host_ovsdb.dpid)
         if datapath is not None:
             parser = datapath.ofproto_parser
             actions = []
@@ -192,26 +201,26 @@ class RestController(ControllerBase):
 
             match2 = parser.OFPMatch(tunnel_id=t_mes.tunnel_id)
             del_flow(datapath, 3, match2, actions)
+        return ResponseSuccess()
 
     @route('simpleswitch', '/tunnel/', methods=['PUT', 'POST'])
     def init_br(self, req):
         # 添加基础网桥
         remote_addr = req.environ['REMOTE_ADDR']
-        server_addr = req.environ['SERVER_NAME']
         try:
-            self.init_bridge(remote_addr=remote_addr,
-                             server_addr=server_addr)
+            re = self.init_bridge(remote_addr=remote_addr)
         except Exception as e:
             return ResponseErrorInitBase(msg=str(e))
         else:
-            return ResponseSuccess()
+            return ResponseSuccess(msg=re)
 
     @route('simpleswitch', '/tunnel/', methods=['GET'])
     def get_init_br(self, req):
         # 添加基础网桥
         remote_addr = req.environ['REMOTE_ADDR']
         host_ovsdb = ip_host_ovsdb_dict.setdefault(remote_addr, None)
+        print(host_ovsdb.get_dic_json())
         if host_ovsdb is None:
             return Response(status=404)
         else:
-            return Response(content_type='application/json', body=host_ovsdb.get_dic_json(), status=200)
+            return ResponseSuccess(msg=host_ovsdb.get_dic_json())
