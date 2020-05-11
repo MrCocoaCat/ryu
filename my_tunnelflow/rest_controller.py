@@ -9,6 +9,7 @@ from ryu.app.wsgi import Response
 from ryu.app.wsgi import route
 from ryu.lib import dpid as dpid_lib
 import json
+import traceback
 from ryu.lib.ovs import vsctl
 from ryu.lib.ovs import bridge
 from oslo_config import cfg
@@ -56,6 +57,29 @@ def add_flow(datapath, priority, match, actions, buffer_id=None):
     datapath.send_msg(mod)
 
 
+def mod_flow(datapath, priority, match, actions, buffer_id=None):
+    print('modify flow')
+    ofproto = datapath.ofproto
+    parser = datapath.ofproto_parser
+    inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS,
+                                         actions)]
+    mod = parser.OFPFlowMod(datapath=datapath,
+                            cookie=0,
+                            cookie_mask=0,
+                            table_id=0,
+                            command=ofproto.OFPFC_MODIFY,
+                            idle_timeout=0,
+                            hard_timeout=0,
+                            priority=priority,
+                            buffer_id=ofproto.OFP_NO_BUFFER,
+                            out_port=ofproto.OFPP_ANY,
+                            out_group=ofproto.OFPG_ANY,
+                            flags=0,
+                            match=match,
+                            instructions=inst)
+    datapath.send_msg(mod)
+
+
 def del_flow(datapath, priority, match, actions, buffer_id=None):
     print('del flow')
     ofproto = datapath.ofproto
@@ -85,7 +109,8 @@ class RestController(ControllerBase):
         super(RestController, self).__init__(req, link, data, **config)
         self.simple_switch_app = data[simple_switch_instance_name]
 
-    def init_bridge(self, remote_addr):
+    @staticmethod
+    def init_bridge(remote_addr):
         host_ovsdb = HostOvsdb(remote_addr)
         br = bridge.OVSBridge(CONF=conf,
                               datapath_id=None,
@@ -108,6 +133,8 @@ class RestController(ControllerBase):
                               key='flow')
         host_ovsdb.tunnel_port_id = br.get_ofport(conf.tunnel_port)
         ip_host_ovsdb_dict[host_ovsdb.ip] = host_ovsdb
+        for k, v in ip_host_ovsdb_dict.items():
+            print(k, '---', v)
         return host_ovsdb.br_name
 
     @route('simpleswitch', '/tunnel/{port}', methods=['GET'])
@@ -129,16 +156,14 @@ class RestController(ControllerBase):
             t_p = tunnel_message_dict[port]
             return ResponseSuccess(msg=t_p.get_dic_json())
 
-    @route('simpleswitch', '/tunnel/{port}', methods=['PUT'])
-    def put_port(self, req, **kwargs):
+    @route('simpleswitch', '/tunnel/{port}', methods=['POST'])
+    def post_port(self, req, **kwargs):
         simple_switch = self.simple_switch_app
         port = kwargs['port']
         try:
             new_entry = req.json if req.body else {}
             t_mes = TunnelMessage(new_entry)
-
             remote_addr = req.environ['REMOTE_ADDR']
-            # server_name = req.environ['SERVER_NAME']
             host_ovsdb = ip_host_ovsdb_dict.setdefault(remote_addr, None)
             if host_ovsdb is None:
                 return ResponseErrorNoInit()
@@ -150,8 +175,6 @@ class RestController(ControllerBase):
             if port not in br.get_port_name_list():
                 return ResponseErrorNoPort()
             t_mes.port_id = br.get_ofport(t_mes.port_name)
-            if t_mes.local_ip is None:
-                t_mes.local_ip = remote_addr
             tunnel_message_dict[t_mes.port_name] = t_mes
             datapath = simple_switch.switches_datapath.get(host_ovsdb.dpid)
             if datapath is not None:
@@ -160,9 +183,10 @@ class RestController(ControllerBase):
                 actions = [parser.NXActionSetTunnel(tun_id=t_mes.tunnel_id),
                            # OFPAT_SET_FIELD
                            parser.OFPActionSetField(tun_ipv4_dst=t_mes.remote_ip),
-                           parser.OFPActionSetField(tun_ipv4_src=t_mes.local_ip),
-                           parser.OFPActionOutput(host_ovsdb.tunnel_port_id),
                            ]
+                if t_mes.local_ip:
+                    actions.append(parser.OFPActionSetField(tun_ipv4_src=t_mes.local_ip))
+                actions.append(parser.OFPActionOutput(host_ovsdb.tunnel_port_id))
                 match = parser.OFPMatch(in_port=t_mes.port_id)
                 add_flow(datapath, 3, match, actions)
 
@@ -176,11 +200,64 @@ class RestController(ControllerBase):
         else:
             return ResponseSuccess()
 
+    @route('simpleswitch', '/tunnel/{port}', methods=['PUT'])
+    def put_port(self, req, **kwargs):
+        simple_switch = self.simple_switch_app
+        port = kwargs['port']
+        try:
+            new_entry = req.json if req.body else {}
+            t_mes_old = tunnel_message_dict.setdefault(port)
+            if t_mes_old is None:
+                return ResponseErrorNoPort()
+            t_mes = TunnelMessage(new_entry)
+            remote_addr = req.environ['REMOTE_ADDR']
+            host_ovsdb = ip_host_ovsdb_dict.setdefault(remote_addr, None)
+            if host_ovsdb is None:
+                return ResponseErrorNoInit()
+            else:
+                br = bridge.OVSBridge(CONF=conf,
+                                      datapath_id=host_ovsdb.dpid,
+                                      ovsdb_addr=host_ovsdb.ovsdb_addr)
+                br.init()
+            if port not in br.get_port_name_list():
+                return ResponseErrorNoPort()
+            t_mes.port_id = br.get_ofport(t_mes.port_name)
+
+            tunnel_message_dict[t_mes.port_name] = t_mes
+            datapath = simple_switch.switches_datapath.get(host_ovsdb.dpid)
+
+            if datapath is not None:
+                parser = datapath.ofproto_parser
+                # ofproto = datapath.ofproto
+                action1 = [parser.NXActionSetTunnel(tun_id=t_mes.tunnel_id),
+                           # OFPAT_SET_FIELD
+                           parser.OFPActionSetField(tun_ipv4_dst=t_mes.remote_ip),
+                           ]
+                if t_mes.local_ip:
+                    action1.append(parser.OFPActionSetField(tun_ipv4_src=t_mes.local_ip))
+                action1.append(parser.OFPActionOutput(host_ovsdb.tunnel_port_id))
+                match = parser.OFPMatch(in_port=t_mes.port_id)
+                mod_flow(datapath, 3, match, action1)
+
+                match2 = parser.OFPMatch(tunnel_id=t_mes_old.tunnel_id)
+                del_flow(datapath, 3, match2, [])
+
+                actions2 = [parser.OFPActionOutput(t_mes.port_id)]
+                match2 = parser.OFPMatch(in_port=host_ovsdb.tunnel_port_id, tunnel_id=t_mes.tunnel_id)
+                add_flow(datapath, 3, match2, actions2)
+
+
+            else:
+                raise Exception("no depapath")
+        except Exception as e:
+            return ResponseErrorPortBase(msg=str(e))
+        else:
+            return ResponseSuccess()
+
     @route('simpleswitch', '/tunnel/{port}', methods=['DELETE'])
     def delete_port(self, req, **kwargs):
         port = kwargs['port']
         remote_addr = req.environ['REMOTE_ADDR']
-        server_name = req.environ['SERVER_NAME']
         host_ovsdb = ip_host_ovsdb_dict.setdefault(remote_addr, None)
         if host_ovsdb is None:
             return ResponseErrorNoPort()
@@ -210,6 +287,7 @@ class RestController(ControllerBase):
         try:
             re = self.init_bridge(remote_addr=remote_addr)
         except Exception as e:
+            traceback.print_exc()
             return ResponseErrorInitBase(msg=str(e))
         else:
             return ResponseSuccess(msg=re)

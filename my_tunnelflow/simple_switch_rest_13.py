@@ -32,7 +32,6 @@ class SimpleSwitchRest13(app_manager.RyuApp):
         datapath = ev.msg.datapath
         # switches字典，存放datapath.id:datapath
         self.switches_datapath[datapath.id] = datapath
-        for i, j in self.switches_datapath.items():
-            print(i, j)
-
+        #for i, j in self.switches_datapath.items():
+        print("dpid:{:0>16x}".format(datapath.id))
 

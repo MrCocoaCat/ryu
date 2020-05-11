@@ -10,12 +10,18 @@ class HostOvsdb:
     def __init__(self, ip):
         self.ip = ip
         self.ovsdb_addr = 'tcp:%s:6640' % ip
-        self.dpid = None
-        self.ovsdb_uuid = None
+        self.dpid = 0
+        self.ovsdb_uuid = 0
         self.br_name = 'br_tunnel'
         self.tunnel_port_name = None
         self.tunnel_port_id = None
 
+    def __str__(self):
+
+        return "ip:{},ovsdb_addr:{},dpid:{:0>16x},ovsdb_uuid:{:0>16x},br_name:{}," \
+               "tunnel_port_name:{},tunnel_port_id:{}".format(self.ip, self.ovsdb_addr, self.dpid,
+                                                              self.ovsdb_uuid, self.br_name, self.tunnel_port_name,
+                                                              self.tunnel_port_id)
 
     def get_dic_json(self):
         return json.dumps(self.__dict__)
