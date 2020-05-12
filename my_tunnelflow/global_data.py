@@ -5,6 +5,9 @@
 # @File    : global_data.py
 
 # 存放ip: HostOvsdb
-ip_host_ovsdb_dict = {}
+#ip_host_ovsdb_dict = {}
 
-tunnel_message_dict = {}
+# 存放dpid:datapath
+dpid_datapath_dict = {}
+
+# tunnel_message_dict = {}

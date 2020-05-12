@@ -7,18 +7,13 @@ import json
 from webob.response import Response as webob_Response
 
 # 1 返回成功
+
 # 1000 初始化错误
 
 
-# 1100
-# 添加Tunnel错误
-# 1101 未初始化
-# 1102 无这个端口
-
-# 1200
-# 删除Tunnel错误
-# 1201 未初始化
-# 1202 无这个端口
+# 1100 添加Tunnel错误
+# 1101 添加Tunnel错误:未初始化
+# 1102 添加Tunnel错误:无这个端口
 
 class ResponseTunnelBase(webob_Response):
     """
