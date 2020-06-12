@@ -7,8 +7,6 @@
 from ryu.app.wsgi import ControllerBase
 from ryu.app.wsgi import Response
 from ryu.app.wsgi import route
-from ryu.lib import dpid as dpid_lib
-import json
 import traceback
 from ryu.lib.ovs import vsctl
 from ryu.lib.ovs import bridge
@@ -16,15 +14,11 @@ from oslo_config import cfg
 import time
 import sys
 
-from my_tunnelflow.orm_data import HostOvsdb
-from my_tunnelflow.orm_data import TunnelPort
 from my_tunnelflow.global_data import dpid_datapath_dict
 from my_tunnelflow.response_body import *
-
-simple_switch_instance_name = 'simple_switch_api_app'
-from my_tunnelflow.dao.querydb import QueryDB
+from dao.querydb import QueryDB
 from my_tunnelflow.orm_data import *
-
+simple_switch_instance_name = 'simple_switch_api_app'
 
 
 # OVSDB_ADDR = 'tcp:127.0.0.1:6640'
@@ -258,8 +252,7 @@ class RestController(ControllerBase):
     def delete_port(self, req, **kwargs):
         port = kwargs['port']
         remote_addr = req.environ['REMOTE_ADDR']
-        server_name = req.environ['SERVER_NAME']
-        host_ovsdb = ip_host_ovsdb_dict.setdefault(remote_addr, None)
+        host_ovsdb = self.db.get_ovsdb(remote_addr)
         if host_ovsdb is None:
             return ResponseErrorNoPort()
         else:
@@ -267,10 +260,10 @@ class RestController(ControllerBase):
                                   datapath_id=host_ovsdb.dpid,
                                   ovsdb_addr=host_ovsdb.ovsdb_addr)
             br.init()
-        t_mes = tunnel_message_dict.setdefault(port)
+        t_mes = self.db.get_tunnel_port(ip=remote_addr, port_name=port)
         if t_mes is None:
             return ResponseErrorNoPort()
-        datapath = self.simple_switch_app.switches.get(host_ovsdb.dpid)
+        datapath = dpid_datapath_dict.setdefault(host_ovsdb.dpid)
         if datapath is not None:
             parser = datapath.ofproto_parser
             actions = []
@@ -279,6 +272,7 @@ class RestController(ControllerBase):
 
             match2 = parser.OFPMatch(tunnel_id=t_mes.tunnel_id)
             del_flow(datapath, 3, match2, actions)
+        self.db.delete_tunnel_port(ip=remote_addr, port_name=port)
         return ResponseSuccess()
 
     @route('simpleswitch', '/tunnel/', methods=['POST'])
